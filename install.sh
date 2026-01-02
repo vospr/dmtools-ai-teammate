@@ -15,9 +15,12 @@ NC='\033[0m' # No Color
 
 # Configuration
 # Local source detection - check for local dmtools directory
+echo "DEBUG: Checking DMTOOLS_LOCAL_SOURCE=$DMTOOLS_LOCAL_SOURCE"
 if [ -n "$DMTOOLS_LOCAL_SOURCE" ] && [ -d "$DMTOOLS_LOCAL_SOURCE" ]; then
     LOCAL_SOURCE="$DMTOOLS_LOCAL_SOURCE"
     USE_LOCAL=true
+    echo "DEBUG: Using LOCAL_SOURCE=$LOCAL_SOURCE, USE_LOCAL=$USE_LOCAL"
+    ls -la "$LOCAL_SOURCE" 2>&1 | head -10 || echo "DEBUG: Cannot list LOCAL_SOURCE"
 elif [ -d "$HOME/dmtools" ]; then
     LOCAL_SOURCE="$HOME/dmtools"
     USE_LOCAL=true
@@ -27,6 +30,7 @@ elif [ -d "/c/Users/AndreyPopov/dmtools" ]; then
 else
     USE_LOCAL=false
     LOCAL_SOURCE=""
+    echo "DEBUG: No local source found, USE_LOCAL=false"
 fi
 
 # Repository configuration - use vospr/dmtools for releases, local for development
@@ -489,6 +493,14 @@ download_dmtools() {
     fi
     
     # Download shell script - try multiple methods
+    # Method 0: Check local source FIRST (before any downloads)
+    if [ "$USE_LOCAL" = true ] && [ -n "$LOCAL_SOURCE" ] && [ -f "$LOCAL_SOURCE/dmtools.sh" ]; then
+        progress "Using local dmtools.sh from: $LOCAL_SOURCE/dmtools.sh"
+        cp "$LOCAL_SOURCE/dmtools.sh" "$SCRIPT_PATH"
+        chmod +x "$SCRIPT_PATH"
+        return 0
+    fi
+    
     # Method 1: Try redirect-based URL (standard GitHub release URL)
     if download_file "$script_url" "$SCRIPT_PATH" "DMTools shell script" "true"; then
         # Success with redirect URL
@@ -508,7 +520,7 @@ download_dmtools() {
         fi
     fi
     
-    # Method 3: Fallback to repository main branch
+    # Method 3: Fallback to repository main branch (also checks local)
     warn "Release asset download failed, trying repository main branch..."
     if download_script_from_repo "$version"; then
         chmod +x "$SCRIPT_PATH"
