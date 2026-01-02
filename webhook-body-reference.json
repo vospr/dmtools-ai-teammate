@@ -1,0 +1,7 @@
+{
+  "ref": "main",
+  "inputs": {
+    "ticket_key": "{{issue.key}}",
+    "config_file": "agents/learning_questions.json"
+  }
+}
