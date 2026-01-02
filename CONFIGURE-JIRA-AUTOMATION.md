@@ -8,6 +8,7 @@ This guide walks you through configuring the Jira automation rule using the conf
 
 - Access to your Jira project with automation permissions
 - GitHub Personal Access Token (PAT) with `repo` and `workflow` scopes
+  - **Note:** You can reuse the same PAT you saved in GitHub Secrets (`PAT_TOKEN`) if it has these scopes
 - "AI Teammate" user account created in Jira
 
 ---
@@ -16,14 +17,27 @@ This guide walks you through configuring the Jira automation rule using the conf
 
 ### 1.1. Get Your GitHub PAT
 
+**You can reuse your existing GitHub PAT** if it has the required scopes (`repo` and `workflow`). 
+
+**If you already have a PAT** (e.g., saved in `dmtools.env` or GitHub Secrets as `PAT_TOKEN`):
+- ✅ **You can reuse it** - Just copy the same token value
+- ✅ **Check scopes:** Ensure it has `repo` and `workflow` permissions
+- ✅ **No need to generate a new one** unless you want separate tokens for security
+
+**If you need to create a new PAT** (or verify your existing one):
+
 1. Go to: https://github.com/settings/tokens
 2. Click **"Generate new token"** → **"Generate new token (classic)"**
-3. Give it a name: `Jira Automation - AI Teammate`
+3. Give it a name: `Jira Automation - AI Teammate` (or reuse existing name)
 4. Select scopes:
    - ✅ `repo` (Full control of private repositories)
    - ✅ `workflow` (Update GitHub Action workflows)
 5. Click **"Generate token"**
 6. **Copy the token immediately** (format: `ghp_...`)
+
+**Note:** The same PAT can be used for:
+- GitHub Secrets (`PAT_TOKEN`) - Used by GitHub Actions workflows
+- Jira Automation (`githubToken`) - Used by Jira to trigger workflows
 
 ### 1.2. Store Token in Jira Automation
 
@@ -32,7 +46,7 @@ This guide walks you through configuring the Jira automation rule using the conf
 3. Click **"Add component"** → **"Create variable"**
 4. Configure:
    - **Variable name:** `githubToken`
-   - **Smart value:** Paste your GitHub PAT token (the `ghp_...` value)
+   - **Smart value:** Paste your GitHub PAT token (can be the same one from `PAT_TOKEN` if it has `repo` and `workflow` scopes)
 5. Click **"Save"**
 
 **Important:** Keep this token secure. It has access to your GitHub repository.
