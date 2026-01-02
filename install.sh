@@ -1,0 +1,646 @@
+#!/bin/bash
+# DMTools CLI Installation Script
+# Usage (local): ./install.sh
+# Usage (remote): curl -fsSL https://raw.githubusercontent.com/vospr/dmtools/main/install.sh | bash
+# Requirements: Java 23 (will attempt automatic installation on macOS/Linux)
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Configuration
+# Local source detection - check for local dmtools directory
+if [ -n "$DMTOOLS_LOCAL_SOURCE" ] && [ -d "$DMTOOLS_LOCAL_SOURCE" ]; then
+    LOCAL_SOURCE="$DMTOOLS_LOCAL_SOURCE"
+    USE_LOCAL=true
+elif [ -d "$HOME/dmtools" ]; then
+    LOCAL_SOURCE="$HOME/dmtools"
+    USE_LOCAL=true
+elif [ -d "/c/Users/AndreyPopov/dmtools" ]; then
+    LOCAL_SOURCE="/c/Users/AndreyPopov/dmtools"
+    USE_LOCAL=true
+else
+    USE_LOCAL=false
+    LOCAL_SOURCE=""
+fi
+
+# Repository configuration - use vospr/dmtools for releases, local for development
+if [ "$USE_LOCAL" = true ]; then
+    REPO="vospr/dmtools"  # For documentation/fallback URLs
+else
+    REPO="vospr/dmtools"
+fi
+
+INSTALL_DIR="$HOME/.dmtools"
+BIN_DIR="$INSTALL_DIR/bin"
+JAR_PATH="$INSTALL_DIR/dmtools.jar"
+SCRIPT_PATH="$BIN_DIR/dmtools"
+
+# Helper functions
+error() {
+    echo -e "${RED}Error: $1${NC}" >&2
+    exit 1
+}
+
+info() {
+    echo -e "${GREEN}$1${NC}"
+}
+
+warn() {
+    echo -e "${YELLOW}Warning: $1${NC}"
+}
+
+progress() {
+    echo -e "${BLUE}$1${NC}"
+}
+
+# Detect platform
+detect_platform() {
+    local os=""
+    local arch=""
+    
+    # Check for Windows first (Git Bash, WSL, Cygwin, MSYS)
+    if [[ -n "$WINDIR" ]] || [[ -n "$MSYSTEM" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$(uname -s)" == *"MINGW"* ]] || [[ "$(uname -s)" == *"MSYS"* ]] || [[ "$(uname -s)" == *"CYGWIN"* ]]; then
+        os="windows"
+    else
+        case "$(uname -s)" in
+            Darwin*) os="darwin" ;;
+            Linux*) os="linux" ;;
+            *) error "Unsupported operating system: $(uname -s)" ;;
+        esac
+    fi
+    
+    case "$(uname -m)" in
+        x86_64|amd64) arch="amd64" ;;
+        arm64|aarch64) arch="arm64" ;;
+        *) error "Unsupported architecture: $(uname -m)" ;;
+    esac
+    
+    echo "${os}_${arch}"
+}
+
+# Get latest release version
+get_latest_version() {
+    progress "Fetching latest release information..." >&2
+    local version
+    local api_response
+    local curl_exit_code
+    
+    # Try GitHub API with proper error handling
+    api_response=$(curl -s --connect-timeout 10 --max-time 30 --fail "https://api.github.com/repos/${REPO}/releases/latest" 2>&1)
+    curl_exit_code=$?
+    
+    if [ $curl_exit_code -eq 0 ] && [ -n "$api_response" ]; then
+        version=$(echo "$api_response" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | head -1)
+        
+        if [ -n "$version" ]; then
+            echo "$version"
+            return 0
+        fi
+    fi
+    
+    # If GitHub API failed, try alternative approach with redirect
+    progress "GitHub API failed (exit code: $curl_exit_code), trying redirect method..." >&2
+    
+    local redirect_response
+    redirect_response=$(curl -s --connect-timeout 10 --max-time 30 --fail -I "https://github.com/${REPO}/releases/latest" 2>&1)
+    curl_exit_code=$?
+    
+    if [ $curl_exit_code -eq 0 ] && [ -n "$redirect_response" ]; then
+        version=$(echo "$redirect_response" | grep -i "location:" | sed -E 's/.*\/tag\/([^\/\r\n]+).*/\1/' | tr -d '\r\n')
+        
+        if [ -n "$version" ]; then
+            echo "$version"
+            return 0
+        fi
+    fi
+    
+    # Both methods failed - provide detailed error information
+    error "Failed to get latest version from GitHub API and redirect method.
+    
+Possible causes:
+  - Network connectivity issues
+  - GitHub API rate limiting
+  - Repository access issues
+  - curl version incompatibility
+
+Debug information:
+  - Last curl exit code: $curl_exit_code
+  - API response: ${api_response:-'(empty)'}
+  - Redirect response: ${redirect_response:-'(empty)'}
+  
+Please check your network connection and try again.
+If the issue persists, you can manually download from:
+https://github.com/${REPO}/releases/latest"
+}
+
+# Validate downloaded file is not HTML (404 error page) and is valid
+validate_not_html() {
+    local file="$1"
+    local desc="$2"
+    local require_shell="${3:-false}"
+    
+    # Check if file exists and is readable
+    if [ ! -f "$file" ] || [ ! -r "$file" ]; then
+        return 1
+    fi
+    
+    # Check if file is empty
+    if [ ! -s "$file" ]; then
+        return 1
+    fi
+    
+    # Get first line for validation
+    local first_line
+    first_line=$(head -n 1 "$file" 2>/dev/null || echo "")
+    
+    # Check if file starts with HTML doctype or common HTML tags
+    if echo "$first_line" | grep -qiE "<!DOCTYPE|<html|<body"; then
+        return 1
+    fi
+    
+    # If shell script is required, check for shebang
+    if [ "$require_shell" = "true" ]; then
+        if ! echo "$first_line" | grep -qE "^#!/bin/(bash|sh)"; then
+            # Also check for common error messages that might be returned
+            if echo "$first_line" | grep -qiE "not found|404|error|page not found"; then
+                return 1
+            fi
+            # Check if file contains shell script indicators
+            if ! head -n 5 "$file" 2>/dev/null | grep -qE "^#!/|^#.*bash|^#.*sh|set -|function |\(\)"; then
+                return 1
+            fi
+        fi
+    fi
+    
+    return 0
+}
+
+# Download file with progress and validation
+download_file() {
+    local url="$1"
+    local output="$2"
+    local desc="$3"
+    local validate="${4:-true}"
+    local max_retries=3
+    local retry_count=0
+    
+    progress "Downloading $desc..."
+    
+    while [ $retry_count -lt $max_retries ]; do
+        local http_code=0
+        local download_success=false
+        
+        if command -v curl >/dev/null 2>&1; then
+            # Use curl with better error handling
+            # First get HTTP status code
+            http_code=$(curl -L -s -o /dev/null -w "%{http_code}" --max-time 30 "$url" 2>/dev/null || echo "000")
+            
+            # Validate http_code is numeric
+            if ! echo "$http_code" | grep -qE '^[0-9]+$'; then
+                http_code="000"
+            fi
+            
+            # Check HTTP status code
+            if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 400 ] 2>/dev/null; then
+                # HTTP status is OK, proceed with download
+                if curl -L --progress-bar --max-time 60 --fail "$url" -o "$output" 2>/dev/null; then
+                    download_success=true
+                else
+                    warn "Download failed despite OK HTTP status. Retrying..."
+                fi
+            else
+                # Handle HTTP error codes
+                if [ "$http_code" -ge 500 ] 2>/dev/null; then
+                    warn "Server error ($http_code) when downloading $desc. Retrying..."
+                elif [ "$http_code" -eq 404 ] 2>/dev/null; then
+                    warn "File not found (404) when downloading $desc."
+                    rm -f "$output"
+                    return 1
+                elif [ "$http_code" = "000" ] || [ -z "$http_code" ]; then
+                    warn "Network error or timeout when downloading $desc. Retrying..."
+                else
+                    warn "HTTP error ($http_code) when downloading $desc. Retrying..."
+                fi
+            fi
+        elif command -v wget >/dev/null 2>&1; then
+            # Use wget with better error handling
+            if wget --progress=bar --tries=1 --timeout=30 "$url" -O "$output" 2>&1; then
+                download_success=true
+            else
+                warn "Download failed. Retrying..."
+            fi
+        else
+            error "Neither curl nor wget is available. Please install one of them."
+        fi
+        
+        if [ "$download_success" = true ]; then
+            break
+        fi
+        
+        retry_count=$((retry_count + 1))
+        if [ $retry_count -lt $max_retries ]; then
+            local wait_time=$((retry_count * 2))
+            warn "Waiting ${wait_time}s before retry ($retry_count/$max_retries)..."
+            sleep $wait_time
+        fi
+    done
+    
+    # Check if download was successful
+    if [ ! -f "$output" ] || [ ! -s "$output" ]; then
+        error "Failed to download $desc from $url after $max_retries attempts.
+        
+Possible causes:
+  - Network connectivity issues
+  - GitHub service temporarily unavailable (503 error)
+  - File not found in release (404 error)
+  
+Please try again later or check: https://github.com/${REPO}/releases/latest"
+    fi
+    
+    # Validate the downloaded file if requested
+    if [ "$validate" = "true" ]; then
+        local require_shell="false"
+        # Check if this is a shell script download
+        if [[ "$desc" == *"shell script"* ]] || [[ "$url" == *.sh ]]; then
+            require_shell="true"
+        fi
+        
+        if ! validate_not_html "$output" "$desc" "$require_shell"; then
+            warn "Downloaded file appears to be invalid (HTML error page or not a valid shell script). Removing invalid file."
+            rm -f "$output"
+            return 1
+        fi
+    fi
+    
+    return 0
+}
+
+# Create installation directory
+create_install_dir() {
+    progress "Creating installation directory..."
+    mkdir -p "$INSTALL_DIR"
+    mkdir -p "$BIN_DIR"
+}
+
+# Check if running on Windows (Git Bash, WSL, Cygwin, MSYS)
+is_windows() {
+    # Check various Windows indicators
+    if [[ -n "$WINDIR" ]] || [[ -n "$MSYSTEM" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        return 0
+    fi
+    
+    # Check uname output
+    local uname_s=$(uname -s 2>/dev/null || echo "")
+    if [[ "$uname_s" == *"MINGW"* ]] || [[ "$uname_s" == *"MSYS"* ]] || [[ "$uname_s" == *"CYGWIN"* ]]; then
+        return 0
+    fi
+    
+    # Check for WSL (Windows Subsystem for Linux)
+    if [[ -f /proc/version ]] && grep -qi microsoft /proc/version 2>/dev/null; then
+        return 0
+    fi
+    
+    # Check for Windows mount point in WSL
+    if [[ -d /mnt/c/Windows ]] || [[ -d /mnt/c/windows ]]; then
+        return 0
+    fi
+    
+    return 1
+}
+
+# Check and install Java
+check_java() {
+    progress "Checking Java installation..."
+    
+    # Check if Java is available
+    if ! command -v java >/dev/null 2>&1; then
+        # First check if we're on Windows - don't try to install Java automatically
+        if is_windows; then
+            error "Java 23 is required but not installed. Please install Java 23 manually on Windows:
+  - Download from: https://adoptium.net/
+  - Or use Chocolatey: choco install temurin23jdk
+  - Or use Windows installer: https://adoptium.net/temurin/releases/?version=23
+  
+Note: If you're using WSL, you can install Java in WSL using:
+  sudo apt-get update && sudo apt-get install -y openjdk-23-jdk"
+        elif [ -n "${GITHUB_ACTIONS:-}" ]; then
+            error "Java is not available in GitHub Actions. Please set up Java first:
+            
+steps:
+  - name: Set up Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: 'temurin'
+      java-version: '23'
+  - name: Install DMTools CLI
+    run: |
+      curl https://github.com/vospr/dmtools/releases/latest/download/install.sh -fsS | bash"
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+            warn "Java not found. Attempting to install via Homebrew..."
+            if command -v brew >/dev/null 2>&1; then
+                progress "Installing OpenJDK 23 via Homebrew..."
+                brew install openjdk@23 || error "Failed to install Java via Homebrew"
+                info "Java installed successfully via Homebrew"
+            else
+                error "Java 23 is required but not installed. Please install Java 23:
+  - Via Homebrew: brew install openjdk@23
+  - Via Oracle: https://www.oracle.com/java/technologies/downloads/
+  - Via Eclipse Temurin: https://adoptium.net/"
+            fi
+        elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$(uname -s)" == "Linux" ]]; then
+            # This is real Linux (not Windows/WSL)
+            if command -v apt-get >/dev/null 2>&1; then
+                warn "Java not found. Attempting to install via apt..."
+                progress "Installing OpenJDK 23..."
+                sudo apt-get update && sudo apt-get install -y openjdk-23-jdk || error "Failed to install Java 23 via apt. Please install manually."
+                info "Java installed successfully"
+            elif command -v yum >/dev/null 2>&1; then
+                warn "Java not found. Attempting to install via yum..."
+                sudo yum install -y java-23-openjdk-devel || error "Failed to install Java 23 via yum. Please install manually."
+                info "Java installed successfully"
+            elif command -v dnf >/dev/null 2>&1; then
+                warn "Java not found. Attempting to install via dnf..."
+                sudo dnf install -y java-23-openjdk-devel || error "Failed to install Java 23 via dnf. Please install manually."
+                info "Java installed successfully"
+            else
+                error "Java 23 is required but not installed. Please install Java 23:
+  - Ubuntu/Debian: sudo apt-get install openjdk-23-jdk
+  - RHEL/CentOS: sudo yum install java-23-openjdk-devel
+  - Fedora: sudo dnf install java-23-openjdk-devel"
+            fi
+        else
+            error "Java 23 is required but not installed. Please install Java 23."
+        fi
+    fi
+    
+    # Verify Java version
+    local java_version
+    java_version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2)
+    local java_major_version
+    java_major_version=$(echo "$java_version" | cut -d'.' -f1)
+    
+    info "Java version detected: $java_version"
+    
+    # Check if Java version is sufficient (Java 23+ required)
+    if [ "$java_major_version" -lt 23 ]; then
+        error "Java $java_version is too old. DMTools requires Java 23."
+    fi
+}
+
+# Get asset download URL from GitHub API (more reliable than redirect URLs)
+get_asset_url_from_api() {
+    local version="$1"
+    local asset_name="$2"
+    
+    # Ensure version has 'v' prefix for API call
+    local tag_for_api="$version"
+    if [[ ! "$tag_for_api" =~ ^v ]]; then
+        tag_for_api="v${version}"
+    fi
+    
+    local api_url="https://api.github.com/repos/${REPO}/releases/tags/${tag_for_api}"
+    
+    progress "Getting asset URL from GitHub API..." >&2
+    
+    local release_info
+    release_info=$(curl -s --connect-timeout 10 --max-time 30 "$api_url" 2>/dev/null)
+    
+    if [ -n "$release_info" ] && ! echo "$release_info" | grep -q '"message":"Not Found"'; then
+        # Extract browser_download_url for the asset (works without jq)
+        local download_url
+        download_url=$(echo "$release_info" | grep -o "\"browser_download_url\":\"[^\"]*${asset_name}[^\"]*\"" | head -1 | sed 's/.*"browser_download_url":"\([^"]*\)".*/\1/')
+        
+        if [ -n "$download_url" ] && [ "$download_url" != "null" ]; then
+            echo "$download_url"
+            return 0
+        fi
+    fi
+    
+    return 1
+}
+
+# Download dmtools.sh from repository if release asset is missing
+download_script_from_repo() {
+    local version="$1"
+    local script_url="https://raw.githubusercontent.com/${REPO}/main/dmtools.sh"
+    
+    # Check local source first
+    if [ "$USE_LOCAL" = true ] && [ -n "$LOCAL_SOURCE" ] && [ -f "$LOCAL_SOURCE/dmtools.sh" ]; then
+        progress "Using local dmtools.sh from repository..."
+        cp "$LOCAL_SOURCE/dmtools.sh" "$SCRIPT_PATH"
+        return 0
+    fi
+    
+    progress "dmtools.sh not found in release assets, downloading from repository..."
+    
+    if download_file "$script_url" "$SCRIPT_PATH" "DMTools shell script (from repository)" "true"; then
+        # Validate it's actually a shell script
+        if ! head -n 1 "$SCRIPT_PATH" 2>/dev/null | grep -q "^#!/bin/bash"; then
+            warn "Downloaded file doesn't appear to be a valid shell script. Trying alternative source..."
+            rm -f "$SCRIPT_PATH"
+            return 1
+        fi
+        return 0
+    fi
+    
+    return 1
+}
+
+# Download DMTools JAR and script
+download_dmtools() {
+    local version="$1"
+    local jar_url="https://github.com/${REPO}/releases/download/${version}/dmtools-${version}-all.jar"
+    local script_url="https://github.com/${REPO}/releases/download/${version}/dmtools.sh"
+    
+    # Check for local JAR first (for local development)
+    if [ "$USE_LOCAL" = true ] && [ -n "$LOCAL_SOURCE" ]; then
+        local local_jar=""
+        # Try to find JAR in local build directory
+        if [ -d "$LOCAL_SOURCE/build/libs" ]; then
+            local_jar=$(find "$LOCAL_SOURCE/build/libs" -name "dmtools-*-all.jar" -o -name "*-all.jar" | head -1)
+        fi
+        
+        if [ -n "$local_jar" ] && [ -f "$local_jar" ]; then
+            progress "Using local JAR from: $local_jar"
+            cp "$local_jar" "$JAR_PATH"
+            info "Copied local JAR to $JAR_PATH"
+        else
+            # Fallback to download
+            download_file "$jar_url" "$JAR_PATH" "DMTools JAR"
+        fi
+    else
+        # Download JAR
+        download_file "$jar_url" "$JAR_PATH" "DMTools JAR"
+    fi
+    
+    # Download shell script - try multiple methods
+    # Method 1: Try redirect-based URL (standard GitHub release URL)
+    if download_file "$script_url" "$SCRIPT_PATH" "DMTools shell script" "true"; then
+        # Success with redirect URL
+        chmod +x "$SCRIPT_PATH"
+        return 0
+    fi
+    
+    # Method 2: Try GitHub API to get direct asset URL (avoids expired blob URLs)
+    warn "Redirect-based download failed, trying GitHub API for direct asset URL..."
+    local api_asset_url
+    api_asset_url=$(get_asset_url_from_api "$version" "dmtools.sh")
+    
+    if [ -n "$api_asset_url" ]; then
+        if download_file "$api_asset_url" "$SCRIPT_PATH" "DMTools shell script (from API)" "true"; then
+            chmod +x "$SCRIPT_PATH"
+            return 0
+        fi
+    fi
+    
+    # Method 3: Fallback to repository main branch
+    warn "Release asset download failed, trying repository main branch..."
+    if download_script_from_repo "$version"; then
+        chmod +x "$SCRIPT_PATH"
+        return 0
+    fi
+    
+    # All methods failed
+    error "Failed to download dmtools.sh from all available sources:
+  1. GitHub release redirect URL: $script_url
+  2. GitHub API asset URL: ${api_asset_url:-'(not available)'}
+  3. Repository main branch: https://raw.githubusercontent.com/${REPO}/main/dmtools.sh
+  
+Possible causes:
+  - Network connectivity issues
+  - GitHub service temporarily unavailable (503 error)
+  - File not found in release (404 error)
+  
+Please try again later or download manually from:
+  https://raw.githubusercontent.com/${REPO}/main/dmtools.sh
+  
+Or if developing locally:
+  cp $LOCAL_SOURCE/dmtools.sh $SCRIPT_PATH
+  chmod +x $SCRIPT_PATH
+  
+And place it at: $SCRIPT_PATH"
+}
+
+# Update shell configuration
+update_shell_config() {
+    progress "Updating shell configuration..."
+    
+    local shell_configs=()
+    
+    # Detect shell and add appropriate config files
+    case "$SHELL" in
+        */bash)
+            [ -f "$HOME/.bashrc" ] && shell_configs+=("$HOME/.bashrc")
+            [ -f "$HOME/.bash_profile" ] && shell_configs+=("$HOME/.bash_profile")
+            ;;
+        */zsh)
+            [ -f "$HOME/.zshrc" ] && shell_configs+=("$HOME/.zshrc")
+            ;;
+        */fish)
+            mkdir -p "$HOME/.config/fish/conf.d"
+            shell_configs+=("$HOME/.config/fish/conf.d/dmtools.fish")
+            ;;
+    esac
+    
+    # Add generic profile files if they exist
+    [ -f "$HOME/.profile" ] && shell_configs+=("$HOME/.profile")
+    
+    local path_export="export PATH=\"$BIN_DIR:\$PATH\""
+    
+    for config in "${shell_configs[@]}"; do
+        if [ -f "$config" ]; then
+            # Check if PATH is already added
+            if ! grep -q "$BIN_DIR" "$config" 2>/dev/null; then
+                echo "" >> "$config"
+                echo "# Added by DMTools installer" >> "$config"
+                if [[ "$config" == *".fish" ]]; then
+                    echo "set -gx PATH $BIN_DIR \$PATH" >> "$config"
+                else
+                    echo "$path_export" >> "$config"
+                fi
+                info "Updated $config"
+            else
+                warn "$BIN_DIR already in PATH in $config"
+            fi
+        fi
+    done
+}
+
+# Verify installation
+verify_installation() {
+    progress "Verifying installation..."
+    
+    # Check if files exist
+    [ -f "$JAR_PATH" ] || error "JAR file not found at $JAR_PATH"
+    [ -f "$SCRIPT_PATH" ] || error "Script file not found at $SCRIPT_PATH"
+    [ -x "$SCRIPT_PATH" ] || error "Script file is not executable at $SCRIPT_PATH"
+    
+    # Test the installation
+    if "$SCRIPT_PATH" list >/dev/null 2>&1; then
+        info "DMTools CLI installed successfully!"
+    else
+        warn "Installation completed but dmtools command test failed. You may need to restart your shell."
+    fi
+}
+
+# Print post-installation instructions
+print_instructions() {
+    echo ""
+    info "🎉 DMTools CLI installation completed!"
+    echo ""
+    echo "To get started:"
+    echo "  1. Restart your shell or run: source ~/.zshrc (or ~/.bashrc)"
+    echo "  2. Run: dmtools list"
+    echo "  3. Set up your integrations with environment variables:"
+    echo "     export DMTOOLS_INTEGRATIONS=jira,confluence,figma"
+    echo "     export JIRA_EMAIL=your-email@domain.com"
+    echo "     export JIRA_API_TOKEN=your-jira-api-token"
+    echo "     export JIRA_BASE_PATH=https://your-domain.atlassian.net"
+    echo ""
+    echo "System Requirements:"
+    echo "  ✓ Java $(java -version 2>&1 | head -n 1 | cut -d'"' -f2) detected"
+    echo ""
+    if [ "$USE_LOCAL" = true ]; then
+        echo "For more information, visit: ${LOCAL_SOURCE}"
+        echo "  Local development: cd ${LOCAL_SOURCE} && ./gradlew shadowJar"
+    else
+        echo "For more information, visit: https://github.com/${REPO}"
+    fi
+}
+
+# Main installation function
+main() {
+    info "🚀 Installing DMTools CLI..."
+    
+    # Check prerequisites
+    check_java
+    
+    # Get latest version
+    local version
+    version=$(get_latest_version)
+    info "Latest version: $version"
+    
+    # Create directories
+    create_install_dir
+    
+    # Download DMTools
+    download_dmtools "$version"
+    
+    # Update shell configuration
+    update_shell_config
+    
+    # Verify installation
+    verify_installation
+    
+    # Print instructions
+    print_instructions
+}
+
+# Run main function
+main "$@"

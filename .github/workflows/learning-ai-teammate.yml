@@ -63,15 +63,17 @@ jobs:
           ls -la "$DMTOOLS_LOCAL_SOURCE" || echo "Cannot list releases directory"
           ls -la "$DMTOOLS_LOCAL_SOURCE/build/libs" 2>/dev/null || echo "Cannot list build/libs directory"
           
-          # Use local install.sh from repository checkout (preferred for local development)
+          # Use local install.sh from repository checkout (preferred - has access to local files)
           # Or download from vospr/dmtools main branch (raw content)
           if [ -f "${{ github.workspace }}/install.sh" ]; then
             echo "Using local install.sh from repository..."
+            # Ensure environment variable is set before running
+            export DMTOOLS_LOCAL_SOURCE="$DMTOOLS_LOCAL_SOURCE"
             bash "${{ github.workspace }}/install.sh"
           else
             echo "Downloading install.sh from vospr/dmtools main branch..."
-            # Pass environment variable to the downloaded script
-            DMTOOLS_LOCAL_SOURCE="$DMTOOLS_LOCAL_SOURCE" curl -fsSL https://raw.githubusercontent.com/vospr/dmtools/main/install.sh | bash
+            # Pass environment variable to the downloaded script via env
+            env DMTOOLS_LOCAL_SOURCE="$DMTOOLS_LOCAL_SOURCE" bash <(curl -fsSL https://raw.githubusercontent.com/vospr/dmtools/main/install.sh)
           fi
           
           # Add dmtools bin directory to PATH for all subsequent steps
