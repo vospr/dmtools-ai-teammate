@@ -127,6 +127,11 @@ jobs:
           echo "🔗 Testing Jira connection..."
           # Ensure PATH includes dmtools
           export PATH="$HOME/.dmtools/bin:$PATH"
+          # Trim whitespace/newlines from JIRA_BASE_PATH (fix Windows line endings)
+          export JIRA_BASE_PATH=$(echo "$JIRA_BASE_PATH" | tr -d '\r\n' | xargs)
+          export JIRA_AUTH_TYPE=$(echo "$JIRA_AUTH_TYPE" | tr -d '\r\n' | xargs)
+          echo "JIRA_BASE_PATH='$JIRA_BASE_PATH'"
+          echo "JIRA_AUTH_TYPE='$JIRA_AUTH_TYPE'"
           dmtools jira_get_current_user || echo "❌ Jira connection failed"
       
       - name: Get Ticket Information
@@ -140,6 +145,10 @@ jobs:
           echo "📋 Fetching ticket ${{ inputs.ticket_key }}..."
           # Ensure PATH includes dmtools
           export PATH="$HOME/.dmtools/bin:$PATH"
+          
+          # Trim whitespace/newlines from environment variables (fix Windows line endings)
+          export JIRA_BASE_PATH=$(echo "$JIRA_BASE_PATH" | tr -d '\r\n' | xargs)
+          export JIRA_AUTH_TYPE=$(echo "$JIRA_AUTH_TYPE" | tr -d '\r\n' | xargs)
           
           # Verify dmtools is available
           if ! command -v dmtools >/dev/null 2>&1; then
@@ -267,6 +276,10 @@ jobs:
           TICKET_KEY: ${{ inputs.ticket_key }}
         run: |
           echo "🎫 Creating sub-tickets..."
+          
+          # Trim whitespace/newlines from environment variables (fix Windows line endings)
+          export JIRA_BASE_PATH=$(echo "$JIRA_BASE_PATH" | tr -d '\r\n' | xargs)
+          export JIRA_AUTH_TYPE=$(echo "$JIRA_AUTH_TYPE" | tr -d '\r\n' | xargs)
           
           PROJECT_KEY=$(echo "$TICKET_KEY" | cut -d'-' -f1)
           QUESTIONS=$(cat questions.json)
