@@ -250,47 +250,169 @@ jobs:
         run: |
           echo "🤖 Building AI prompt..."
           
-          # Read ticket data
+          # Read ticket data with fallback methods (same pattern as Get Ticket Information step)
           TICKET_JSON=$(cat ticket.json)
-          SUMMARY=$(echo "$TICKET_JSON" | jq -r '.fields.summary')
-          DESCRIPTION=$(echo "$TICKET_JSON" | jq -r '.fields.description // "No description"')
           
-          # Create prompt file
-          cat > prompt.txt <<'EOF'
-          You are an Experienced Business Analyst analyzing Jira tickets.
+          # Extract SUMMARY with fallback methods
+          SUMMARY=""
+          if command -v jq >/dev/null 2>&1; then
+            SUMMARY=$(echo "$TICKET_JSON" | jq -r '.fields.summary // empty' 2>/dev/null | grep -v '^null$' | head -1)
+          fi
+          if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ] || [ "$SUMMARY" = "empty" ]; then
+            SUMMARY=$(grep -oP '"summary"\s*:\s*"\K[^"]*' ticket.json 2>/dev/null | head -1 || echo "Unknown")
+          fi
+          if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ]; then
+            SUMMARY="Unknown"
+          fi
           
-          TICKET TO ANALYZE:
-          Key: $TICKET_KEY
-          Summary: $SUMMARY
-          Description:
-          $DESCRIPTION
+          # Extract DESCRIPTION with fallback methods
+          DESCRIPTION=""
+          if command -v jq >/dev/null 2>&1; then
+            # Try to get description, handle ADF format
+            DESCRIPTION=$(echo "$TICKET_JSON" | jq -r '.fields.description // empty' 2>/dev/null)
+            # If description is an object (ADF format), try to extract text
+            if echo "$DESCRIPTION" | jq -e 'type == "object"' >/dev/null 2>&1; then
+              # Try to extract text from ADF content
+              DESCRIPTION=$(echo "$DESCRIPTION" | jq -r '.content[]? | select(.type == "paragraph") | .content[]? | select(.type == "text") | .text' 2>/dev/null | tr '\n' ' ' | head -c 500 || echo "No description")
+            fi
+            if [ -z "$DESCRIPTION" ] || [ "$DESCRIPTION" = "null" ] || [ "$DESCRIPTION" = "empty" ]; then
+              DESCRIPTION="No description"
+            fi
+          else
+            DESCRIPTION="No description"
+          fi
           
-          YOUR TASK:
-          Generate 2-5 clarifying questions for any unclear requirements.
+          # Clean up description (remove newlines, limit length)
+          DESCRIPTION=$(echo "$DESCRIPTION" | tr '\n' ' ' | sed 's/  */ /g' | head -c 1000)
           
-          OUTPUT FORMAT (must be valid JSON array):
-          [
-            {
-              "summary": "Question summary (max 120 chars)",
-              "priority": "High|Medium|Low",
-              "description": "Detailed question in markdown"
-            }
-          ]
-          
-          If everything is crystal clear, output: []
-          
-          IMPORTANT: Output ONLY the JSON array, no other text.
-          
-          JSON array:
-          EOF
-          
-          # Substitute variables
-          sed -i "s/\$TICKET_KEY/$TICKET_KEY/g" prompt.txt
-          sed -i "s/\$SUMMARY/$SUMMARY/g" prompt.txt
-          sed -i "s/\$DESCRIPTION/$DESCRIPTION/g" prompt.txt
+          # Create prompt file using envsubst or Python for safe variable substitution
+          # This avoids sed escaping issues with special characters
+          if command -v python3 >/dev/null 2>&1; then
+            python3 <<PYTHON_SCRIPT
+import sys
+import re
+
+ticket_key = "$TICKET_KEY"
+summary = """$SUMMARY"""
+description = """$DESCRIPTION"""
+
+# Escape for safe substitution
+summary = summary.replace('\\', '\\\\').replace('$', '\\$').replace('`', '\\`')
+description = description.replace('\\', '\\\\').replace('$', '\\$').replace('`', '\\`')
+
+prompt_template = """You are an Experienced Business Analyst analyzing Jira tickets.
+
+TICKET TO ANALYZE:
+Key: {TICKET_KEY}
+Summary: {SUMMARY}
+Description:
+{DESCRIPTION}
+
+YOUR TASK:
+Generate 2-5 clarifying questions for any unclear requirements.
+
+OUTPUT FORMAT (must be valid JSON array):
+[
+  {{
+    "summary": "Question summary (max 120 chars)",
+    "priority": "High|Medium|Low",
+    "description": "Detailed question in markdown"
+  }}
+]
+
+If everything is crystal clear, output: []
+
+IMPORTANT: Output ONLY the JSON array, no other text.
+
+JSON array:
+"""
+
+prompt = prompt_template.format(
+    TICKET_KEY=ticket_key,
+    SUMMARY=summary,
+    DESCRIPTION=description
+)
+
+with open('prompt.txt', 'w', encoding='utf-8') as f:
+    f.write(prompt)
+
+print("Prompt created successfully")
+PYTHON_SCRIPT
+          else
+            # Fallback: use envsubst if available
+            if command -v envsubst >/dev/null 2>&1; then
+              export TICKET_KEY SUMMARY DESCRIPTION
+              cat > prompt_template.txt <<'TEMPLATE_EOF'
+You are an Experienced Business Analyst analyzing Jira tickets.
+
+TICKET TO ANALYZE:
+Key: ${TICKET_KEY}
+Summary: ${SUMMARY}
+Description:
+${DESCRIPTION}
+
+YOUR TASK:
+Generate 2-5 clarifying questions for any unclear requirements.
+
+OUTPUT FORMAT (must be valid JSON array):
+[
+  {
+    "summary": "Question summary (max 120 chars)",
+    "priority": "High|Medium|Low",
+    "description": "Detailed question in markdown"
+  }
+]
+
+If everything is crystal clear, output: []
+
+IMPORTANT: Output ONLY the JSON array, no other text.
+
+JSON array:
+TEMPLATE_EOF
+              envsubst < prompt_template.txt > prompt.txt
+              rm -f prompt_template.txt
+            else
+              # Last resort: use awk for safer substitution
+              awk -v tk="$TICKET_KEY" -v sm="$SUMMARY" -v desc="$DESCRIPTION" '
+              {
+                gsub(/\$TICKET_KEY/, tk)
+                gsub(/\$SUMMARY/, sm)
+                gsub(/\$DESCRIPTION/, desc)
+                print
+              }
+              ' > prompt.txt <<'AWK_EOF'
+You are an Experienced Business Analyst analyzing Jira tickets.
+
+TICKET TO ANALYZE:
+Key: $TICKET_KEY
+Summary: $SUMMARY
+Description:
+$DESCRIPTION
+
+YOUR TASK:
+Generate 2-5 clarifying questions for any unclear requirements.
+
+OUTPUT FORMAT (must be valid JSON array):
+[
+  {
+    "summary": "Question summary (max 120 chars)",
+    "priority": "High|Medium|Low",
+    "description": "Detailed question in markdown"
+  }
+]
+
+If everything is crystal clear, output: []
+
+IMPORTANT: Output ONLY the JSON array, no other text.
+
+JSON array:
+AWK_EOF
+            fi
+          fi
           
           echo "Prompt created:"
-          cat prompt.txt
+          head -30 prompt.txt
+          echo "..."
       
       - name: Call Gemini AI
         id: ai_response
