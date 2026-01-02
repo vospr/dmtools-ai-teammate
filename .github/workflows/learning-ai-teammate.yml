@@ -160,8 +160,9 @@ jobs:
             exit 1
           fi
           
-          # Fetch ticket - capture stdout to file, stderr separately
-          dmtools jira_get_ticket ${{ inputs.ticket_key }} > ticket.json 2>ticket_error.log
+          # Fetch ticket - capture all output first, then extract JSON
+          # Based on test results: dmtools may output debug messages before JSON
+          dmtools jira_get_ticket ${{ inputs.ticket_key }} > ticket_raw.txt 2>ticket_error.log
           
           # Check for errors in stderr
           if [ -s ticket_error.log ]; then
@@ -169,9 +170,23 @@ jobs:
             cat ticket_error.log
           fi
           
+          # Extract JSON from output (handle debug messages before JSON)
+          # Pattern from test results: find first { and extract to end
+          if grep -q '{' ticket_raw.txt; then
+            # Find first { and extract everything from there
+            sed -n '/^{/,$p' ticket_raw.txt > ticket.json
+            echo "✅ Extracted JSON from dmtools output"
+          else
+            # No JSON found, use raw output
+            cp ticket_raw.txt ticket.json
+            echo "⚠️ No JSON marker found, using raw output"
+          fi
+          
           # Check if file is empty
           if [ ! -s ticket.json ]; then
             echo "❌ ERROR: ticket.json is empty"
+            echo "Raw output:"
+            cat ticket_raw.txt
             echo "Stderr output:"
             cat ticket_error.log
             exit 1
@@ -181,32 +196,43 @@ jobs:
           FILE_SIZE=$(wc -c < ticket.json)
           echo "Ticket JSON file size: $FILE_SIZE bytes"
           
-          # Validate JSON syntax
+          # Validate JSON syntax (non-blocking)
           if jq empty ticket.json 2>jq_error.log; then
             echo "✅ JSON is valid"
           else
-            echo "⚠️ WARNING: JSON validation failed"
-            echo "jq error:"
-            cat jq_error.log
-            echo "First 2000 chars of JSON:"
-            head -c 2000 ticket.json
-            echo ""
-            echo "Last 500 chars of JSON:"
-            tail -c 500 ticket.json
-            echo ""
+            echo "⚠️ WARNING: JSON validation failed, but continuing with fallback extraction"
+            if [ -s jq_error.log ]; then
+              echo "jq error:"
+              head -20 jq_error.log
+            fi
           fi
           
-          # Extract summary for logging (with error handling)
-          SUMMARY=$(jq -r '.fields.summary // empty' ticket.json 2>/dev/null)
+          # Extract summary using multiple fallback methods (pattern from test results)
+          SUMMARY=""
           
+          # Method 1: Try jq (most reliable)
+          if command -v jq >/dev/null 2>&1; then
+            SUMMARY=$(jq -r '.fields.summary // empty' ticket.json 2>/dev/null | grep -v '^null$' | head -1)
+          fi
+          
+          # Method 2: Try grep/sed (fallback from test results)
+          if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ] || [ "$SUMMARY" = "empty" ]; then
+            echo "⚠️ jq extraction failed, trying grep fallback"
+            SUMMARY=$(grep -oP '"summary"\s*:\s*"\K[^"]*' ticket.json 2>/dev/null | head -1)
+          fi
+          
+          # Method 3: Try Python if available (most robust)
           if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ]; then
-            echo "⚠️ Could not extract summary with jq, trying fallback method"
-            # Fallback: try to extract from raw JSON using grep/sed
-            SUMMARY=$(grep -oP '"summary"\s*:\s*"\K[^"]*' ticket.json | head -1 || echo "Unknown")
+            if command -v python3 >/dev/null 2>&1; then
+              echo "⚠️ grep extraction failed, trying Python fallback"
+              SUMMARY=$(python3 -c "import json, sys; data=json.load(sys.stdin); print(data.get('fields', {}).get('summary', 'Unknown'))" < ticket.json 2>/dev/null || echo "")
+            fi
           fi
           
+          # Final fallback
           if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ]; then
             SUMMARY="Unknown"
+            echo "⚠️ All extraction methods failed, using default 'Unknown'"
           fi
           
           echo "Ticket summary: $SUMMARY"
