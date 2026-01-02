@@ -160,42 +160,62 @@ jobs:
             exit 1
           fi
           
-          # Fetch ticket and validate JSON
-          dmtools jira_get_ticket ${{ inputs.ticket_key }} > ticket.json 2>&1
+          # Fetch ticket - capture stdout to file, stderr separately
+          dmtools jira_get_ticket ${{ inputs.ticket_key }} > ticket.json 2>ticket_error.log
           
-          # Check if output is valid JSON (starts with { or [)
-          if ! head -c 1 ticket.json | grep -q '[{\[]'; then
-            echo "❌ ERROR: dmtools output is not valid JSON"
-            echo "Output:"
-            cat ticket.json
+          # Check for errors in stderr
+          if [ -s ticket_error.log ]; then
+            echo "⚠️ WARNING: Errors/warnings from dmtools:"
+            cat ticket_error.log
+          fi
+          
+          # Check if file is empty
+          if [ ! -s ticket.json ]; then
+            echo "❌ ERROR: ticket.json is empty"
+            echo "Stderr output:"
+            cat ticket_error.log
             exit 1
           fi
           
+          # Check file size
+          FILE_SIZE=$(wc -c < ticket.json)
+          echo "Ticket JSON file size: $FILE_SIZE bytes"
+          
           # Validate JSON syntax
-          if ! jq empty ticket.json 2>/dev/null; then
-            echo "⚠️ WARNING: JSON validation failed, attempting to extract summary anyway"
-            echo "Raw output (first 500 chars):"
-            head -c 500 ticket.json
+          if jq empty ticket.json 2>jq_error.log; then
+            echo "✅ JSON is valid"
+          else
+            echo "⚠️ WARNING: JSON validation failed"
+            echo "jq error:"
+            cat jq_error.log
+            echo "First 2000 chars of JSON:"
+            head -c 2000 ticket.json
             echo ""
-            echo "Raw output (last 500 chars):"
+            echo "Last 500 chars of JSON:"
             tail -c 500 ticket.json
             echo ""
           fi
           
-          # Display ticket info
-          echo "Ticket JSON (first 1000 chars):"
-          head -c 1000 ticket.json
-          echo ""
-          
           # Extract summary for logging (with error handling)
-          SUMMARY=$(jq -r '.fields.summary // "Unknown" // empty' ticket.json 2>/dev/null || echo "Unknown")
-          if [ "$SUMMARY" = "Unknown" ] || [ -z "$SUMMARY" ]; then
+          SUMMARY=$(jq -r '.fields.summary // empty' ticket.json 2>/dev/null)
+          
+          if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ]; then
+            echo "⚠️ Could not extract summary with jq, trying fallback method"
             # Fallback: try to extract from raw JSON using grep/sed
-            SUMMARY=$(grep -o '"summary":"[^"]*"' ticket.json | head -1 | sed 's/"summary":"\(.*\)"/\1/' || echo "Unknown")
+            SUMMARY=$(grep -oP '"summary"\s*:\s*"\K[^"]*' ticket.json | head -1 || echo "Unknown")
+          fi
+          
+          if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ]; then
+            SUMMARY="Unknown"
           fi
           
           echo "Ticket summary: $SUMMARY"
           echo "TICKET_SUMMARY=$SUMMARY" >> $GITHUB_OUTPUT
+          
+          # Display ticket info (first part only to avoid log spam)
+          echo "Ticket JSON preview (first 500 chars):"
+          head -c 500 ticket.json
+          echo "..."
       
       - name: Build AI Prompt
         id: build_prompt
