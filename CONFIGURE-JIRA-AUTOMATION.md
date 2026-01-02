@@ -239,6 +239,58 @@ This helps track when automation is triggered.
 3. Verify the token has `repo` and `workflow` scopes
 4. Try regenerating the token and updating the Jira variable
 
+### Webhook Returns 422 "Workflow does not have 'workflow_dispatch' trigger"
+
+**Problem:** GitHub API returns 422 with message "Workflow does not have 'workflow_dispatch' trigger".
+
+**Solutions:**
+1. **Verify workflow file exists and is on main branch:**
+   - Go to: https://github.com/vospr/dmtools-ai-teammate/tree/main/.github/workflows
+   - Confirm `learning-ai-teammate.yml` exists
+   - Check that the file is on the `main` branch (not a different branch)
+
+2. **Verify workflow_dispatch is configured:**
+   - Open the workflow file on GitHub
+   - Check that it starts with:
+     ```yaml
+     on:
+       workflow_dispatch:
+     ```
+
+3. **Check for YAML syntax errors:**
+   - GitHub may not recognize the workflow if there's a syntax error
+   - Go to: https://github.com/vospr/dmtools-ai-teammate/actions
+   - If the workflow doesn't appear in the list, there's likely a syntax error
+   - Review recent commits to the workflow file
+
+4. **Verify webhook URL matches workflow file name exactly:**
+   - URL should be: `.../workflows/learning-ai-teammate.yml/dispatches`
+   - File name must match exactly (case-sensitive)
+   - Check for typos: `learning-ai-teammate.yml` (not `ai-teammate.yml`)
+
+5. **Try triggering manually first:**
+   - Go to: https://github.com/vospr/dmtools-ai-teammate/actions/workflows/learning-ai-teammate.yml
+   - Click "Run workflow" button
+   - If it doesn't appear, the workflow file has an issue
+   - If it appears but fails, check the workflow logs
+
+6. **Check workflow file was pushed to GitHub:**
+   - Verify latest changes are committed and pushed:
+     ```bash
+     git status
+     git log --oneline -5
+     ```
+   - If changes aren't pushed, commit and push:
+     ```bash
+     git add .github/workflows/learning-ai-teammate.yml
+     git commit -m "Fix workflow_dispatch configuration"
+     git push origin main
+     ```
+
+7. **Wait a few seconds after pushing:**
+   - GitHub may take 10-30 seconds to recognize workflow changes
+   - Try the webhook again after waiting
+
 ### Workflow Runs But Fails
 
 **Problem:** Workflow is triggered but fails during execution.
