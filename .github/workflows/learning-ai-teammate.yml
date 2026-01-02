@@ -37,13 +37,13 @@ jobs:
         run: |
           echo "📦 Installing dmtools CLI..."
           # Use local install.sh from repository checkout (preferred for local development)
-          # Or download from vospr/dmtools releases
+          # Or download from vospr/dmtools main branch (raw content)
           if [ -f "${{ github.workspace }}/install.sh" ]; then
             echo "Using local install.sh from repository..."
             bash "${{ github.workspace }}/install.sh"
           else
-            echo "Downloading install.sh from vospr/dmtools releases..."
-            curl -fsSL https://github.com/vospr/dmtools/releases/latest/download/install.sh | bash
+            echo "Downloading install.sh from vospr/dmtools main branch..."
+            curl -fsSL https://raw.githubusercontent.com/vospr/dmtools/main/install.sh | bash
           fi
           
           # Add dmtools bin directory to PATH for all subsequent steps
@@ -95,6 +95,8 @@ jobs:
           JIRA_AUTH_TYPE: ${{ vars.JIRA_AUTH_TYPE }}
         run: |
           echo "🔗 Testing Jira connection..."
+          # Ensure PATH includes dmtools
+          export PATH="$HOME/.dmtools/bin:$PATH"
           dmtools jira_get_current_user || echo "❌ Jira connection failed"
       
       - name: Get Ticket Information
@@ -106,6 +108,18 @@ jobs:
           JIRA_AUTH_TYPE: ${{ vars.JIRA_AUTH_TYPE }}
         run: |
           echo "📋 Fetching ticket ${{ inputs.ticket_key }}..."
+          # Ensure PATH includes dmtools
+          export PATH="$HOME/.dmtools/bin:$PATH"
+          
+          # Verify dmtools is available
+          if ! command -v dmtools >/dev/null 2>&1; then
+            echo "❌ ERROR: dmtools not found in PATH"
+            echo "PATH: $PATH"
+            echo "Checking installation..."
+            ls -la "$HOME/.dmtools/bin" || echo "Install directory not found"
+            exit 1
+          fi
+          
           dmtools jira_get_ticket ${{ inputs.ticket_key }} > ticket.json
           cat ticket.json
           
@@ -169,6 +183,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           echo "🧠 Calling Gemini AI..."
+          # Ensure PATH includes dmtools
+          export PATH="$HOME/.dmtools/bin:$PATH"
           
           PROMPT=$(cat prompt.txt)
           dmtools gemini_ai_chat "$PROMPT" > response.md
@@ -246,6 +262,9 @@ jobs:
             
             echo "Creating question $i: $FULL_SUMMARY"
             
+            # Ensure PATH includes dmtools
+            export PATH="$HOME/.dmtools/bin:$PATH"
+            
             # Create ticket via dmtools
             # Note: This is a simplified version. The actual JavaScript action would be more robust.
             dmtools jira_create_ticket_with_json "{
@@ -272,6 +291,8 @@ jobs:
           TICKET_KEY: ${{ inputs.ticket_key }}
         run: |
           echo "🏷️ Adding label..."
+          # Ensure PATH includes dmtools
+          export PATH="$HOME/.dmtools/bin:$PATH"
           
           if [ "${{ steps.parse_questions.outputs.QUESTION_COUNT }}" -eq "0" ]; then
             dmtools jira_add_label $TICKET_KEY "ai_no_questions_needed"
