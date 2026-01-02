@@ -332,28 +332,162 @@ jobs:
         run: |
           echo "📝 Parsing questions from AI response..."
           
-          # Extract JSON array from response
+          # Read response file
           RESPONSE=$(cat response.md)
-          JSON=$(echo "$RESPONSE" | grep -oP '\[[\s\S]*\]' | head -1)
+          echo "Response length: ${#RESPONSE} characters"
+          echo "First 500 chars of response:"
+          echo "$RESPONSE" | head -c 500
+          echo ""
+          echo "..."
           
+          # Method 1: Try to extract JSON using Python (most robust)
+          JSON=""
+          if command -v python3 >/dev/null 2>&1; then
+            echo "Using Python to extract JSON..."
+            JSON=$(python3 << 'PYTHON_SCRIPT'
+import json
+import re
+import sys
+
+response = sys.stdin.read()
+
+# Try multiple extraction methods
+# Method 1: Look for JSON array in code blocks
+code_block_match = re.search(r'```(?:json)?\s*(\[[\s\S]*?\])\s*```', response, re.MULTILINE)
+if code_block_match:
+    json_str = code_block_match.group(1)
+    try:
+        json.loads(json_str)
+        print(json_str)
+        sys.exit(0)
+    except:
+        pass
+
+# Method 2: Look for JSON array between brackets (balanced)
+bracket_start = response.find('[')
+if bracket_start != -1:
+    bracket_count = 0
+    bracket_end = -1
+    for i in range(bracket_start, len(response)):
+        if response[i] == '[':
+            bracket_count += 1
+        elif response[i] == ']':
+            bracket_count -= 1
+            if bracket_count == 0:
+                bracket_end = i
+                break
+    if bracket_end != -1:
+        json_str = response[bracket_start:bracket_end+1]
+        try:
+            json.loads(json_str)
+            print(json_str)
+            sys.exit(0)
+        except:
+            pass
+
+# Method 3: Try to find any valid JSON array
+json_match = re.search(r'\[[\s\S]*?\]', response)
+if json_match:
+    json_str = json_match.group(0)
+    try:
+        parsed = json.loads(json_str)
+        if isinstance(parsed, list):
+            print(json_str)
+            sys.exit(0)
+    except:
+        pass
+
+sys.exit(1)
+PYTHON_SCRIPT
+            <<< "$RESPONSE" 2>/dev/null || echo "")
+          fi
+          
+          # Method 2: Fallback to grep if Python failed
           if [ -z "$JSON" ]; then
-            echo "No questions generated - requirements are clear!"
+            echo "Python extraction failed, trying grep fallback..."
+            # Try to find JSON array, handling multiline
+            JSON=$(echo "$RESPONSE" | grep -oPz '(?s)\[[\s\S]*?\]' | tr -d '\0' | head -1)
+          fi
+          
+          # Method 3: Try sed to extract between first [ and last ]
+          if [ -z "$JSON" ]; then
+            echo "Grep extraction failed, trying sed fallback..."
+            FIRST_BRACKET=$(echo "$RESPONSE" | grep -n '\[' | head -1 | cut -d: -f1)
+            if [ -n "$FIRST_BRACKET" ]; then
+              JSON=$(echo "$RESPONSE" | sed -n "${FIRST_BRACKET},\$p" | sed -n '1,/\]/p' | tr -d '\n' | sed 's/.*\(\[.*\]\).*/\1/')
+            fi
+          fi
+          
+          # Check if we found JSON
+          if [ -z "$JSON" ]; then
+            echo "No JSON array found in response - requirements are clear!"
+            echo "Full response for debugging:"
+            cat response.md
             echo "QUESTION_COUNT=0" >> $GITHUB_OUTPUT
             exit 0
           fi
           
-          # Validate JSON
-          echo "$JSON" | jq . > questions.json || {
-            echo "❌ Invalid JSON!"
-            exit 1
-          }
+          echo "Extracted JSON (first 200 chars):"
+          echo "$JSON" | head -c 200
+          echo "..."
           
-          QUESTION_COUNT=$(echo "$JSON" | jq 'length')
+          # Clean and validate JSON using Python (more forgiving)
+          if command -v python3 >/dev/null 2>&1; then
+            echo "Validating and cleaning JSON with Python..."
+            CLEAN_JSON=$(echo "$JSON" | python3 << 'PYTHON_CLEAN'
+import json
+import sys
+
+try:
+    data = json.load(sys.stdin)
+    if isinstance(data, list):
+        print(json.dumps(data, indent=2))
+        sys.exit(0)
+    else:
+        print("Not a list", file=sys.stderr)
+        sys.exit(1)
+except json.JSONDecodeError as e:
+    print(f"JSON decode error: {e}", file=sys.stderr)
+    sys.exit(1)
+PYTHON_CLEAN
+            2>json_error.log || echo "")
+            
+            if [ -n "$CLEAN_JSON" ]; then
+              echo "$CLEAN_JSON" > questions.json
+              JSON="$CLEAN_JSON"
+            else
+              echo "⚠️ Python validation failed, error:"
+              cat json_error.log || echo "No error log"
+              echo "Trying jq validation..."
+            fi
+          fi
+          
+          # Fallback: Validate with jq
+          if [ ! -f questions.json ] || [ ! -s questions.json ]; then
+            echo "$JSON" | jq . > questions.json 2>jq_error.log || {
+              echo "❌ Invalid JSON extracted!"
+              echo "Extracted JSON:"
+              echo "$JSON"
+              echo "jq error:"
+              cat jq_error.log
+              echo "Full response:"
+              cat response.md
+              exit 1
+            }
+          fi
+          
+          # Get question count
+          QUESTION_COUNT=$(cat questions.json | jq 'length' 2>/dev/null || echo "0")
           echo "Found $QUESTION_COUNT question(s)"
           echo "QUESTION_COUNT=$QUESTION_COUNT" >> $GITHUB_OUTPUT
           
           # Display questions
-          echo "$JSON" | jq -r '.[] | "- \(.summary) [\(.priority)]"'
+          if [ "$QUESTION_COUNT" -gt 0 ]; then
+            echo "Questions:"
+            cat questions.json | jq -r '.[] | "- \(.summary) [\(.priority)]"'
+          else
+            echo "No questions found in JSON array"
+          fi
       
       - name: Create Sub-tickets
         if: steps.parse_questions.outputs.QUESTION_COUNT > 0
