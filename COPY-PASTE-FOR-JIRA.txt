@@ -1,0 +1,62 @@
+========================================
+JIRA AUTOMATION WEBHOOK CONFIGURATION
+Copy and paste these values into Jira
+========================================
+
+WEBHOOK URL:
+https://api.github.com/repos/vospr/dmtools-ai-teammate/actions/workflows/learning-ai-teammate.yml/dispatches
+
+HTTP METHOD:
+POST
+
+HEADER 1:
+Name: Accept
+Value: application/vnd.github.v3+json
+
+HEADER 2:
+Name: Authorization
+Value: token {{githubToken}}
+
+HEADER 3:
+Name: Content-Type
+Value: application/json
+
+REQUEST BODY (JSON):
+{
+  "ref": "main",
+  "inputs": {
+    "ticket_key": "{{issue.key}}",
+    "config_file": "agents/learning_questions.json"
+  }
+}
+
+WEB REQUEST BODY TYPE:
+Custom data
+
+DELAY EXECUTION:
+0 seconds
+
+========================================
+TRIGGER CONFIGURATION
+========================================
+
+WHEN:
+Work item assigned
+
+CONDITION 1:
+Assignee is "AI Teammate"
+
+CONDITION 2:
+Labels contains none of: ai_questions_asked
+
+========================================
+GITHUB TOKEN VARIABLE
+========================================
+
+VARIABLE NAME:
+githubToken
+
+SMART VALUE:
+[Your GitHub PAT token with repo and workflow scopes]
+
+========================================
