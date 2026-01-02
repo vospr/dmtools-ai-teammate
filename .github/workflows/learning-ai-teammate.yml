@@ -1,0 +1,275 @@
+name: Learning AI Teammate
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticket_key:
+        description: 'Jira ticket key to process (e.g., ATL-2)'
+        required: true
+        type: string
+      config_file:
+        description: 'Path to agent config (relative to repo root)'
+        required: false
+        type: string
+        default: 'agents/learning_questions.json'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  process-ticket:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+      
+      - name: Install dmtools CLI
+        run: |
+          echo "📦 Installing dmtools CLI..."
+          # Use local install.sh from repository checkout (preferred for local development)
+          # Or download from vospr/dmtools releases
+          if [ -f "${{ github.workspace }}/install.sh" ]; then
+            echo "Using local install.sh from repository..."
+            bash "${{ github.workspace }}/install.sh"
+          else
+            echo "Downloading install.sh from vospr/dmtools releases..."
+            curl -fsSL https://github.com/vospr/dmtools/releases/latest/download/install.sh | bash
+          fi
+          echo "$HOME/.dmtools/bin" >> $GITHUB_PATH
+          
+          # Verify installation
+          export PATH="$HOME/.dmtools/bin:$PATH"
+          dmtools --version || echo "⚠️ dmtools version check failed"
+      
+      - name: Verify dmtools CLI
+        run: |
+          echo "🔍 Verifying dmtools installation..."
+          which dmtools || echo "❌ dmtools not in PATH"
+          dmtools --version || echo "❌ dmtools not working"
+          dmtools list | head -20 || echo "❌ Cannot list tools"
+      
+      - name: Test Jira Connection
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_BASE_PATH: ${{ vars.JIRA_BASE_PATH }}
+          JIRA_AUTH_TYPE: ${{ vars.JIRA_AUTH_TYPE }}
+        run: |
+          echo "🔗 Testing Jira connection..."
+          dmtools jira_get_current_user || echo "❌ Jira connection failed"
+      
+      - name: Get Ticket Information
+        id: get_ticket
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_BASE_PATH: ${{ vars.JIRA_BASE_PATH }}
+          JIRA_AUTH_TYPE: ${{ vars.JIRA_AUTH_TYPE }}
+        run: |
+          echo "📋 Fetching ticket ${{ inputs.ticket_key }}..."
+          dmtools jira_get_ticket ${{ inputs.ticket_key }} > ticket.json
+          cat ticket.json
+          
+          # Extract summary for logging
+          SUMMARY=$(cat ticket.json | jq -r '.fields.summary // "Unknown"')
+          echo "Ticket summary: $SUMMARY"
+          echo "TICKET_SUMMARY=$SUMMARY" >> $GITHUB_OUTPUT
+      
+      - name: Build AI Prompt
+        id: build_prompt
+        env:
+          TICKET_KEY: ${{ inputs.ticket_key }}
+        run: |
+          echo "🤖 Building AI prompt..."
+          
+          # Read ticket data
+          TICKET_JSON=$(cat ticket.json)
+          SUMMARY=$(echo "$TICKET_JSON" | jq -r '.fields.summary')
+          DESCRIPTION=$(echo "$TICKET_JSON" | jq -r '.fields.description // "No description"')
+          
+          # Create prompt file
+          cat > prompt.txt <<'EOF'
+          You are an Experienced Business Analyst analyzing Jira tickets.
+          
+          TICKET TO ANALYZE:
+          Key: $TICKET_KEY
+          Summary: $SUMMARY
+          Description:
+          $DESCRIPTION
+          
+          YOUR TASK:
+          Generate 2-5 clarifying questions for any unclear requirements.
+          
+          OUTPUT FORMAT (must be valid JSON array):
+          [
+            {
+              "summary": "Question summary (max 120 chars)",
+              "priority": "High|Medium|Low",
+              "description": "Detailed question in markdown"
+            }
+          ]
+          
+          If everything is crystal clear, output: []
+          
+          IMPORTANT: Output ONLY the JSON array, no other text.
+          
+          JSON array:
+          EOF
+          
+          # Substitute variables
+          sed -i "s/\$TICKET_KEY/$TICKET_KEY/g" prompt.txt
+          sed -i "s/\$SUMMARY/$SUMMARY/g" prompt.txt
+          sed -i "s/\$DESCRIPTION/$DESCRIPTION/g" prompt.txt
+          
+          echo "Prompt created:"
+          cat prompt.txt
+      
+      - name: Call Gemini AI
+        id: ai_response
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo "🧠 Calling Gemini AI..."
+          
+          PROMPT=$(cat prompt.txt)
+          dmtools gemini_ai_chat "$PROMPT" > response.md
+          
+          echo "AI Response:"
+          cat response.md
+          
+          # Validate JSON
+          if grep -q '\[' response.md; then
+            echo "✅ JSON array found in response"
+          else
+            echo "⚠️ No JSON array found in response"
+          fi
+      
+      - name: Parse Questions
+        id: parse_questions
+        run: |
+          echo "📝 Parsing questions from AI response..."
+          
+          # Extract JSON array from response
+          RESPONSE=$(cat response.md)
+          JSON=$(echo "$RESPONSE" | grep -oP '\[[\s\S]*\]' | head -1)
+          
+          if [ -z "$JSON" ]; then
+            echo "No questions generated - requirements are clear!"
+            echo "QUESTION_COUNT=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Validate JSON
+          echo "$JSON" | jq . > questions.json || {
+            echo "❌ Invalid JSON!"
+            exit 1
+          }
+          
+          QUESTION_COUNT=$(echo "$JSON" | jq 'length')
+          echo "Found $QUESTION_COUNT question(s)"
+          echo "QUESTION_COUNT=$QUESTION_COUNT" >> $GITHUB_OUTPUT
+          
+          # Display questions
+          echo "$JSON" | jq -r '.[] | "- \(.summary) [\(.priority)]"'
+      
+      - name: Create Sub-tickets
+        if: steps.parse_questions.outputs.QUESTION_COUNT > 0
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_BASE_PATH: ${{ vars.JIRA_BASE_PATH }}
+          JIRA_AUTH_TYPE: ${{ vars.JIRA_AUTH_TYPE }}
+          TICKET_KEY: ${{ inputs.ticket_key }}
+        run: |
+          echo "🎫 Creating sub-tickets..."
+          
+          PROJECT_KEY=$(echo "$TICKET_KEY" | cut -d'-' -f1)
+          QUESTIONS=$(cat questions.json)
+          
+          i=1
+          echo "$QUESTIONS" | jq -c '.[]' | while read question; do
+            SUMMARY=$(echo "$question" | jq -r '.summary')
+            PRIORITY=$(echo "$question" | jq -r '.priority')
+            DESC=$(echo "$question" | jq -r '.description')
+            
+            # Build summary with prefix
+            FULL_SUMMARY="[Q$i] $SUMMARY"
+            if [ ${#FULL_SUMMARY} -gt 120 ]; then
+              FULL_SUMMARY="${FULL_SUMMARY:0:117}..."
+            fi
+            
+            # Build description
+            FULL_DESC="$DESC
+
+---
+*Generated by AI Teammate*
+*Priority: $PRIORITY*"
+            
+            echo "Creating question $i: $FULL_SUMMARY"
+            
+            # Create ticket via dmtools
+            # Note: This is a simplified version. The actual JavaScript action would be more robust.
+            dmtools jira_create_ticket_with_json "{
+              \"project\": \"$PROJECT_KEY\",
+              \"fieldsJson\": {
+                \"summary\": \"$FULL_SUMMARY\",
+                \"description\": \"$FULL_DESC\",
+                \"issuetype\": {\"name\": \"Sub-task\"},
+                \"parent\": {\"key\": \"$TICKET_KEY\"},
+                \"priority\": {\"name\": \"$PRIORITY\"}
+              }
+            }" || echo "Failed to create sub-ticket $i"
+            
+            i=$((i+1))
+          done
+      
+      - name: Add Label
+        if: steps.parse_questions.outputs.QUESTION_COUNT >= 0
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_BASE_PATH: ${{ vars.JIRA_BASE_PATH }}
+          JIRA_AUTH_TYPE: ${{ vars.JIRA_AUTH_TYPE }}
+          TICKET_KEY: ${{ inputs.ticket_key }}
+        run: |
+          echo "🏷️ Adding label..."
+          
+          if [ "${{ steps.parse_questions.outputs.QUESTION_COUNT }}" -eq "0" ]; then
+            dmtools jira_add_label $TICKET_KEY "ai_no_questions_needed"
+          else
+            dmtools jira_add_label $TICKET_KEY "ai_questions_asked"
+          fi
+      
+      - name: Summary
+        run: |
+          echo "========================================" 
+          echo "AI TEAMMATE PROCESSING COMPLETE"
+          echo "========================================"
+          echo "Ticket: ${{ inputs.ticket_key }}"
+          echo "Summary: ${{ steps.get_ticket.outputs.TICKET_SUMMARY }}"
+          echo "Questions Created: ${{ steps.parse_questions.outputs.QUESTION_COUNT }}"
+          echo "========================================"
+          
+          echo "✅ Check Jira: ${{ vars.JIRA_BASE_PATH }}/browse/${{ inputs.ticket_key }}"
+      
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-teammate-results-${{ github.run_number }}
+          path: |
+            ticket.json
+            prompt.txt
+            response.md
+            questions.json
+          retention-days: 7
