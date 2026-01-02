@@ -34,8 +34,21 @@ jobs:
           java-version: '23'
       
       - name: Install dmtools CLI
+        env:
+          DMTOOLS_LOCAL_SOURCE: ${{ github.workspace }}/releases
         run: |
           echo "📦 Installing dmtools CLI..."
+          
+          # Check if JAR exists in releases/build/libs folder (install.sh expects this structure)
+          if [ -f "${{ github.workspace }}/releases/build/libs/dmtools-latest-all.jar" ]; then
+            echo "✅ Found dmtools.jar in repository releases/build/libs folder"
+            echo "Setting DMTOOLS_LOCAL_SOURCE to use local JAR..."
+            export DMTOOLS_LOCAL_SOURCE="${{ github.workspace }}/releases"
+            ls -la "${{ github.workspace }}/releases/build/libs/" || echo "Directory listing failed"
+          else
+            echo "⚠️ Local JAR not found, will download from GitHub releases"
+          fi
+          
           # Use local install.sh from repository checkout (preferred for local development)
           # Or download from vospr/dmtools main branch (raw content)
           if [ -f "${{ github.workspace }}/install.sh" ]; then
