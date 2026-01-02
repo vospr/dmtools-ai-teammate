@@ -285,28 +285,29 @@ jobs:
           # Clean up description (remove newlines, limit length)
           DESCRIPTION=$(echo "$DESCRIPTION" | tr '\n' ' ' | sed 's/  */ /g' | head -c 1000)
           
-          # Create prompt file using envsubst or Python for safe variable substitution
+          # Create prompt file using Python for safe variable substitution
           # This avoids sed escaping issues with special characters
           if command -v python3 >/dev/null 2>&1; then
-            python3 <<PYTHON_SCRIPT
+            # Use Python with -c flag to avoid YAML heredoc parsing issues
+            python3 -c "
 import sys
-import re
+import json
 
-ticket_key = "$TICKET_KEY"
-summary = """$SUMMARY"""
-description = """$DESCRIPTION"""
+ticket_key = sys.argv[1]
+summary = sys.argv[2]
+description = sys.argv[3]
 
-# Escape for safe substitution
-summary = summary.replace('\\', '\\\\').replace('$', '\\$').replace('`', '\\`')
-description = description.replace('\\', '\\\\').replace('$', '\\$').replace('`', '\\`')
+# Clean and escape values for safe output
+summary = summary.replace('\\\\', '\\\\\\\\').replace('$', '\\$').replace('\`', '\\\`')
+description = description.replace('\\\\', '\\\\\\\\').replace('$', '\\$').replace('\`', '\\\`')
 
-prompt_template = """You are an Experienced Business Analyst analyzing Jira tickets.
+prompt = f'''You are an Experienced Business Analyst analyzing Jira tickets.
 
 TICKET TO ANALYZE:
-Key: {TICKET_KEY}
-Summary: {SUMMARY}
+Key: {ticket_key}
+Summary: {summary}
 Description:
-{DESCRIPTION}
+{description}
 
 YOUR TASK:
 Generate 2-5 clarifying questions for any unclear requirements.
@@ -314,9 +315,9 @@ Generate 2-5 clarifying questions for any unclear requirements.
 OUTPUT FORMAT (must be valid JSON array):
 [
   {{
-    "summary": "Question summary (max 120 chars)",
-    "priority": "High|Medium|Low",
-    "description": "Detailed question in markdown"
+    \"summary\": \"Question summary (max 120 chars)\",
+    \"priority\": \"High|Medium|Low\",
+    \"description\": \"Detailed question in markdown\"
   }}
 ]
 
@@ -325,19 +326,13 @@ If everything is crystal clear, output: []
 IMPORTANT: Output ONLY the JSON array, no other text.
 
 JSON array:
-"""
-
-prompt = prompt_template.format(
-    TICKET_KEY=ticket_key,
-    SUMMARY=summary,
-    DESCRIPTION=description
-)
+'''
 
 with open('prompt.txt', 'w', encoding='utf-8') as f:
     f.write(prompt)
 
-print("Prompt created successfully")
-PYTHON_SCRIPT
+print('Prompt created successfully')
+" "$TICKET_KEY" "$SUMMARY" "$DESCRIPTION"
           else
             # Fallback: use envsubst if available
             if command -v envsubst >/dev/null 2>&1; then
