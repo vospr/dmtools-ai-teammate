@@ -285,38 +285,9 @@ jobs:
           # Clean up description (remove newlines, limit length)
           DESCRIPTION=$(echo "$DESCRIPTION" | tr '\n' ' ' | sed 's/  */ /g' | head -c 1000)
           
-          # Create prompt file using Python -c to avoid YAML heredoc parsing issues
+          # Create prompt file using printf to avoid YAML heredoc parsing issues
           # This approach is YAML-safe and doesn't require heredoc syntax
-          python3 -c "
-import os
-template = '''You are an Experienced Business Analyst analyzing Jira tickets.
-
-TICKET TO ANALYZE:
-Key: \${TICKET_KEY}
-Summary: \${SUMMARY}
-Description:
-\${DESCRIPTION}
-
-YOUR TASK:
-Generate 2-5 clarifying questions for any unclear requirements.
-
-OUTPUT FORMAT (must be valid JSON array):
-[
-  {
-    \"summary\": \"Question summary (max 120 chars)\",
-    \"priority\": \"High|Medium|Low\",
-    \"description\": \"Detailed question in markdown\"
-  }
-]
-
-If everything is crystal clear, output: []
-
-IMPORTANT: Output ONLY the JSON array, no other text.
-
-JSON array:'''
-with open('prompt_template.txt', 'w') as f:
-    f.write(template)
-"
+          printf 'You are an Experienced Business Analyst analyzing Jira tickets.\n\nTICKET TO ANALYZE:\nKey: ${TICKET_KEY}\nSummary: ${SUMMARY}\nDescription:\n${DESCRIPTION}\n\nYOUR TASK:\nGenerate 2-5 clarifying questions for any unclear requirements.\n\nOUTPUT FORMAT (must be valid JSON array):\n[\n  {\n    "summary": "Question summary (max 120 chars)",\n    "priority": "High|Medium|Low",\n    "description": "Detailed question in markdown"\n  }\n]\n\nIf everything is crystal clear, output: []\n\nIMPORTANT: Output ONLY the JSON array, no other text.\n\nJSON array:' > prompt_template.txt
           
           # Use envsubst for variable substitution if available
           if command -v envsubst >/dev/null 2>&1; then
@@ -324,18 +295,9 @@ with open('prompt_template.txt', 'w') as f:
             envsubst < prompt_template.txt > prompt.txt
             rm -f prompt_template.txt
           else
-            # Fallback: use Python for substitution
+            # Fallback: use sed for substitution (envsubst not available)
             export TICKET_KEY SUMMARY DESCRIPTION
-            python3 -c "
-import os
-with open('prompt_template.txt', 'r') as f:
-    content = f.read()
-content = content.replace('\${TICKET_KEY}', os.environ.get('TICKET_KEY', ''))
-content = content.replace('\${SUMMARY}', os.environ.get('SUMMARY', ''))
-content = content.replace('\${DESCRIPTION}', os.environ.get('DESCRIPTION', ''))
-with open('prompt.txt', 'w') as f:
-    f.write(content)
-"
+            sed "s|\${TICKET_KEY}|$TICKET_KEY|g; s|\${SUMMARY}|$SUMMARY|g; s|\${DESCRIPTION}|$DESCRIPTION|g" prompt_template.txt > prompt.txt
             rm -f prompt_template.txt
           fi
           
