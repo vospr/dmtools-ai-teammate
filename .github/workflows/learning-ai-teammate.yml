@@ -160,11 +160,40 @@ jobs:
             exit 1
           fi
           
-          dmtools jira_get_ticket ${{ inputs.ticket_key }} > ticket.json
-          cat ticket.json
+          # Fetch ticket and validate JSON
+          dmtools jira_get_ticket ${{ inputs.ticket_key }} > ticket.json 2>&1
           
-          # Extract summary for logging
-          SUMMARY=$(cat ticket.json | jq -r '.fields.summary // "Unknown"')
+          # Check if output is valid JSON (starts with { or [)
+          if ! head -c 1 ticket.json | grep -q '[{\[]'; then
+            echo "❌ ERROR: dmtools output is not valid JSON"
+            echo "Output:"
+            cat ticket.json
+            exit 1
+          fi
+          
+          # Validate JSON syntax
+          if ! jq empty ticket.json 2>/dev/null; then
+            echo "⚠️ WARNING: JSON validation failed, attempting to extract summary anyway"
+            echo "Raw output (first 500 chars):"
+            head -c 500 ticket.json
+            echo ""
+            echo "Raw output (last 500 chars):"
+            tail -c 500 ticket.json
+            echo ""
+          fi
+          
+          # Display ticket info
+          echo "Ticket JSON (first 1000 chars):"
+          head -c 1000 ticket.json
+          echo ""
+          
+          # Extract summary for logging (with error handling)
+          SUMMARY=$(jq -r '.fields.summary // "Unknown" // empty' ticket.json 2>/dev/null || echo "Unknown")
+          if [ "$SUMMARY" = "Unknown" ] || [ -z "$SUMMARY" ]; then
+            # Fallback: try to extract from raw JSON using grep/sed
+            SUMMARY=$(grep -o '"summary":"[^"]*"' ticket.json | head -1 | sed 's/"summary":"\(.*\)"/\1/' || echo "Unknown")
+          fi
+          
           echo "Ticket summary: $SUMMARY"
           echo "TICKET_SUMMARY=$SUMMARY" >> $GITHUB_OUTPUT
       
