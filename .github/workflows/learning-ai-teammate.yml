@@ -39,15 +39,29 @@ jobs:
         run: |
           echo "📦 Installing dmtools CLI..."
           
-          # Check if JAR exists in releases/build/libs folder (install.sh expects this structure)
-          if [ -f "${{ github.workspace }}/releases/build/libs/dmtools-latest-all.jar" ]; then
-            echo "✅ Found dmtools.jar in repository releases/build/libs folder"
-            echo "Setting DMTOOLS_LOCAL_SOURCE to use local JAR..."
-            export DMTOOLS_LOCAL_SOURCE="${{ github.workspace }}/releases"
-            ls -la "${{ github.workspace }}/releases/build/libs/" || echo "Directory listing failed"
+          # Set and verify DMTOOLS_LOCAL_SOURCE environment variable
+          export DMTOOLS_LOCAL_SOURCE="${{ github.workspace }}/releases"
+          echo "DMTOOLS_LOCAL_SOURCE=$DMTOOLS_LOCAL_SOURCE"
+          
+          # Verify local files exist
+          if [ -f "$DMTOOLS_LOCAL_SOURCE/build/libs/dmtools-latest-all.jar" ]; then
+            echo "✅ Found dmtools.jar: $DMTOOLS_LOCAL_SOURCE/build/libs/dmtools-latest-all.jar"
+            ls -lh "$DMTOOLS_LOCAL_SOURCE/build/libs/dmtools-latest-all.jar"
           else
-            echo "⚠️ Local JAR not found, will download from GitHub releases"
+            echo "⚠️ Local JAR not found at: $DMTOOLS_LOCAL_SOURCE/build/libs/dmtools-latest-all.jar"
           fi
+          
+          if [ -f "$DMTOOLS_LOCAL_SOURCE/dmtools.sh" ]; then
+            echo "✅ Found dmtools.sh: $DMTOOLS_LOCAL_SOURCE/dmtools.sh"
+            ls -lh "$DMTOOLS_LOCAL_SOURCE/dmtools.sh"
+          else
+            echo "⚠️ Local dmtools.sh not found at: $DMTOOLS_LOCAL_SOURCE/dmtools.sh"
+          fi
+          
+          # Verify directory structure
+          echo "Directory structure:"
+          ls -la "$DMTOOLS_LOCAL_SOURCE" || echo "Cannot list releases directory"
+          ls -la "$DMTOOLS_LOCAL_SOURCE/build/libs" 2>/dev/null || echo "Cannot list build/libs directory"
           
           # Use local install.sh from repository checkout (preferred for local development)
           # Or download from vospr/dmtools main branch (raw content)
@@ -56,7 +70,8 @@ jobs:
             bash "${{ github.workspace }}/install.sh"
           else
             echo "Downloading install.sh from vospr/dmtools main branch..."
-            curl -fsSL https://raw.githubusercontent.com/vospr/dmtools/main/install.sh | bash
+            # Pass environment variable to the downloaded script
+            DMTOOLS_LOCAL_SOURCE="$DMTOOLS_LOCAL_SOURCE" curl -fsSL https://raw.githubusercontent.com/vospr/dmtools/main/install.sh | bash
           fi
           
           # Add dmtools bin directory to PATH for all subsequent steps
