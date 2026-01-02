@@ -430,11 +430,20 @@ download_script_from_repo() {
     local version="$1"
     local script_url="https://raw.githubusercontent.com/${REPO}/main/dmtools.sh"
     
+    # Debug: Log local source check
+    echo "DEBUG download_script_from_repo: USE_LOCAL=$USE_LOCAL, LOCAL_SOURCE=$LOCAL_SOURCE"
+    echo "DEBUG: Checking for file: $LOCAL_SOURCE/dmtools.sh"
+    if [ -n "$LOCAL_SOURCE" ]; then
+        ls -la "$LOCAL_SOURCE/dmtools.sh" 2>&1 || echo "DEBUG: File not found or not accessible"
+    fi
+    
     # Check local source first
     if [ "$USE_LOCAL" = true ] && [ -n "$LOCAL_SOURCE" ] && [ -f "$LOCAL_SOURCE/dmtools.sh" ]; then
         progress "Using local dmtools.sh from repository..."
         cp "$LOCAL_SOURCE/dmtools.sh" "$SCRIPT_PATH"
         return 0
+    else
+        echo "DEBUG: Local file check failed - USE_LOCAL=$USE_LOCAL, LOCAL_SOURCE=$LOCAL_SOURCE, file exists: $([ -f "$LOCAL_SOURCE/dmtools.sh" ] && echo 'yes' || echo 'no')"
     fi
     
     progress "dmtools.sh not found in release assets, downloading from repository..."
