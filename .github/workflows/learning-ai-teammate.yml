@@ -320,48 +320,15 @@ TEMPLATE_EOF
             envsubst < prompt_template.txt > prompt.txt
             rm -f prompt_template.txt
           else
-            # Fallback: use envsubst if available
-            if command -v envsubst >/dev/null 2>&1; then
-              export TICKET_KEY SUMMARY DESCRIPTION
-              cat > prompt_template.txt <<'TEMPLATE_EOF'
-You are an Experienced Business Analyst analyzing Jira tickets.
-
-TICKET TO ANALYZE:
-Key: ${TICKET_KEY}
-Summary: ${SUMMARY}
-Description:
-${DESCRIPTION}
-
-YOUR TASK:
-Generate 2-5 clarifying questions for any unclear requirements.
-
-OUTPUT FORMAT (must be valid JSON array):
-[
-  {
-    "summary": "Question summary (max 120 chars)",
-    "priority": "High|Medium|Low",
-    "description": "Detailed question in markdown"
-  }
-]
-
-If everything is crystal clear, output: []
-
-IMPORTANT: Output ONLY the JSON array, no other text.
-
-JSON array:
-TEMPLATE_EOF
-              envsubst < prompt_template.txt > prompt.txt
-              rm -f prompt_template.txt
-            else
-              # Last resort: use awk for safer substitution
-              awk -v tk="$TICKET_KEY" -v sm="$SUMMARY" -v desc="$DESCRIPTION" '
-              {
-                gsub(/\$TICKET_KEY/, tk)
-                gsub(/\$SUMMARY/, sm)
-                gsub(/\$DESCRIPTION/, desc)
-                print
-              }
-              ' > prompt.txt <<'AWK_EOF'
+            # Fallback: use awk for safer substitution (envsubst not available)
+            awk -v tk="$TICKET_KEY" -v sm="$SUMMARY" -v desc="$DESCRIPTION" '
+            {
+              gsub(/\$TICKET_KEY/, tk)
+              gsub(/\$SUMMARY/, sm)
+              gsub(/\$DESCRIPTION/, desc)
+              print
+            }
+            ' > prompt.txt <<'AWK_EOF'
 You are an Experienced Business Analyst analyzing Jira tickets.
 
 TICKET TO ANALYZE:
@@ -388,7 +355,6 @@ IMPORTANT: Output ONLY the JSON array, no other text.
 
 JSON array:
 AWK_EOF
-            fi
           fi
           
           echo "Prompt created:"
