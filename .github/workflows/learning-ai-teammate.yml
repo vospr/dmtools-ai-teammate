@@ -344,7 +344,7 @@ jobs:
           JSON=""
           if command -v python3 >/dev/null 2>&1; then
             echo "Using Python to extract JSON..."
-            JSON=$(python3 << 'PYTHON_SCRIPT'
+            JSON=$(echo "$RESPONSE" | python3 -c "
 import json
 import re
 import sys
@@ -353,7 +353,7 @@ response = sys.stdin.read()
 
 # Try multiple extraction methods
 # Method 1: Look for JSON array in code blocks
-code_block_match = re.search(r'```(?:json)?\s*(\[[\s\S]*?\])\s*```', response, re.MULTILINE)
+code_block_match = re.search(r'\`\`\`(?:json)?\s*(\[[\s\S]*?\])\s*\`\`\`', response, re.MULTILINE)
 if code_block_match:
     json_str = code_block_match.group(1)
     try:
@@ -398,8 +398,7 @@ if json_match:
         pass
 
 sys.exit(1)
-PYTHON_SCRIPT
-            <<< "$RESPONSE" 2>/dev/null || echo "")
+" 2>/dev/null || echo "")
           fi
           
           # Method 2: Fallback to grep if Python failed
