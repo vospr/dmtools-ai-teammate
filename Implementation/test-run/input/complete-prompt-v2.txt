@@ -1,0 +1,29 @@
+You are an Experienced Business Analyst analyzing Jira tickets.
+
+TICKET TO ANALYZE:
+Key: ATL-2
+Summary: Implement dashboard analytics
+Description:
+We need analytics on the dashboard. Users should be able to see their data and metrics.
+
+Show some charts and graphs that look good. Make it useful for business decisions.
+
+The dashboard should be fast and work well on mobile too.
+
+YOUR TASK:
+Generate 2-5 clarifying questions for any unclear requirements.
+
+CRITICAL: You MUST output ONLY a valid JSON array. Do NOT include any explanations, markdown, or other text. Output ONLY the JSON array.
+
+OUTPUT FORMAT (must be valid JSON array):
+[
+  {
+    "summary": "Question summary (max 120 chars)",
+    "priority": "High|Medium|Low",
+    "description": "Detailed question in markdown"
+  }
+]
+
+If everything is clear, output: []
+
+OUTPUT THE JSON ARRAY NOW (NO OTHER TEXT):

@@ -1,0 +1,76 @@
+﻿dmtools : The filename, directory name, or volume label syntax is incorrect.
+At line:1 char:307
++ ... olor Yellow; $rawOutput = dmtools gemini_ai_chat $prompt 2>&1 | Out-S ...
++                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (The filename, d...x is incorrect.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[PropertyReader] ===== Credential Loading Debug =====
+[PropertyReader] System property DMTOOLS_ENV: c:\Users\AndreyPopov\dmtools\dmtools.env
+[PropertyReader] Environment variable DMTOOLS_ENV: c:\Users\AndreyPopov\dmtools\dmtools.env
+[PropertyReader] user.dir: c:\Users\AndreyPopov\dmtools
+[PropertyReader] Resolved path: c:\Users\AndreyPopov\dmtools\dmtools.env
+[PropertyReader] Path exists: true
+[PropertyReader] Path is regular file: true
+[PropertyReader] DMTOOLS_ENV found: c:\Users\AndreyPopov\dmtools\dmtools.env
+[PropertyReader] SUCCESS: Loaded 30 properties from: c:\Users\AndreyPopov\dmtools\dmtools.env
+[PropertyReader] JIRA_BASE_PATH=https://vospr.atlassian.net
+[PropertyReader] JIRA_EMAIL=andrey_popov@epam.com
+[PropertyReader] JIRA_API_TOKEN present=YES
+[To redirect Truffle log output to a file use one of the following options:
+* '--log.file=<path>' if the option is passed using a guest language launcher.
+* '-Dpolyglot.log.file=<path>' if the option is passed using the host Java launcher.
+* Configure logging using the polyglot embedding API.]
+[engine] WARNING: The polyglot engine uses a fallback runtime that does not support runtime compilation to native code.
+Execution without runtime compilation will negatively impact the guest application performance.
+The following cause was found: JVMCI is not enabled for this JVM. Enable JVMCI using -XX:+EnableJVMCI.
+For more information see: 
+https://www.graalvm.org/latest/reference-manual/embed-languages/#runtime-optimization-support.
+To disable this warning use the '--engine.WarnInterpreterOnly=false' option or the 
+'-Dpolyglot.engine.WarnInterpreterOnly=false' system property.
+[BasicJiraClient] Static init - BASE_PATH: https://vospr.atlassian.net
+[BasicJiraClient] Static init - TOKEN from JIRA_LOGIN_PASS_TOKEN: present (length: 288)
+[BasicJiraClient] Static init - AUTH_TYPE: basic
+[To redirect Truffle log output to a file use one of the following options:
+* '--log.file=<path>' if the option is passed using a guest language launcher.
+* '-Dpolyglot.log.file=<path>' if the option is passed using the host Java launcher.
+* Configure logging using the polyglot embedding API.]
+[engine] WARNING: The polyglot engine uses a fallback runtime that does not support runtime compilation to native code.
+Execution without runtime compilation will negatively impact the guest application performance.
+The following cause was found: JVMCI is not enabled for this JVM. Enable JVMCI using -XX:+EnableJVMCI.
+For more information see: 
+https://www.graalvm.org/latest/reference-manual/embed-languages/#runtime-optimization-support.
+To disable this warning use the '--engine.WarnInterpreterOnly=false' option or the 
+'-Dpolyglot.engine.WarnInterpreterOnly=false' system property.
+[To redirect Truffle log output to a file use one of the following options:
+* '--log.file=<path>' if the option is passed using a guest language launcher.
+* '-Dpolyglot.log.file=<path>' if the option is passed using the host Java launcher.
+* Configure logging using the polyglot embedding API.]
+[engine] WARNING: The polyglot engine uses a fallback runtime that does not support runtime compilation to native code.
+Execution without runtime compilation will negatively impact the guest application performance.
+The following cause was found: JVMCI is not enabled for this JVM. Enable JVMCI using -XX:+EnableJVMCI.
+For more information see: 
+https://www.graalvm.org/latest/reference-manual/embed-languages/#runtime-optimization-support.
+To disable this warning use the '--engine.WarnInterpreterOnly=false' option or the 
+'-Dpolyglot.engine.WarnInterpreterOnly=false' system property.
+Alright, bring on the Jira tickets! I'm ready to dive in. As an experienced Business Analyst, I can help you analyze these tickets in a variety of ways.  Tell me what you'd like to achieve, and I'll tailor my approach. For example, I can help you with:
+
+*   **Understanding the Requirements:** I can analyze the ticket description, comments, and attachments to extract the core requirements and user stories.
+*   **Identifying Dependencies:** I can look for connections between tickets to understand dependencies and potential blockers.
+*   **Assessing Risk:** I can evaluate the complexity and potential impact of the changes described in the tickets to identify potential risks.
+*   **Prioritization:** I can help you prioritize tickets based on factors like business value, urgency, and risk.
+*   **Gap Analysis:** I can compare the requirements in the tickets to existing functionality to identify gaps.
+*   **Estimation:** I can help estimate the effort required to complete the work described in the tickets.
+*   **Quality Assurance:** I can review acceptance criteria and test cases associated with the tickets to ensure they are comprehensive and aligned with the requirements.
+*   **Ticket Hygiene:** I can point out issues like incomplete descriptions, missing acceptance criteria, or incorrect assignments.
+
+**To give you the best analysis, please provide me with:**
+
+*   **The Jira ticket number(s) or a description of the tickets you want me to review.**  Copy and pasting the ticket contents works best.
+*   **Your specific goals.** What are you hoping to learn from this analysis?
+*   **Any relevant background information.** Is there a specific project or initiative these tickets relate to?
+*   **Any specific questions you have.**
+
+The more context you provide, the more insightful and helpful my analysis will be. I'm looking forward to helping you make sense of your Jira tickets! Let's get started.
+
+

@@ -1,0 +1,36 @@
+﻿{
+    "initiator":  "712020:9bccb0d5-3074-42f1-8d6e-54d564d50a5f",
+    "response":  {
+                     "value":  [
+                                   {
+                                       "summary":  "What specific metrics and KPIs should be displayed on the dashboard?",
+                                       "priority":  "High",
+                                       "description":  "The ticket mentions \u0027analytics\u0027 and \u0027data and metrics\u0027 but doesn\u0027t specify:\n* Which specific metrics should be displayed?\n* What KPIs are most important for business decisions?\n* Are there industry-standard metrics we should include?\n* What data sources will feed these metrics?"
+                                   },
+                                   {
+                                       "summary":  "What types of charts and visualizations are required?",
+                                       "priority":  "High",
+                                       "description":  "The ticket mentions \u0027charts and graphs that look good\u0027 but doesn\u0027t specify:\n* Which chart types (bar, line, pie, heatmap, etc.)?\n* What design requirements or style guidelines?\n* Are there accessibility requirements?\n* Should charts be interactive or static?"
+                                   },
+                                   {
+                                       "summary":  "What are the performance requirements for dashboard speed?",
+                                       "priority":  "Medium",
+                                       "description":  "The ticket mentions the dashboard should be \u0027fast\u0027 but doesn\u0027t specify:\n* What is the target load time?\n* What is the acceptable response time for data refresh?\n* How many concurrent users should it support?\n* Are there specific performance benchmarks to meet?"
+                                   },
+                                   {
+                                       "summary":  "What are the mobile responsiveness requirements?",
+                                       "priority":  "Medium",
+                                       "description":  "The ticket mentions it should \u0027work well on mobile\u0027 but doesn\u0027t specify:\n* Which screen sizes should be supported?\n* Which features should be available on mobile vs desktop?\n* Are there specific mobile design patterns to follow?\n* Should it be a responsive web app or native mobile app?"
+                                   },
+                                   {
+                                       "summary":  "Which business decisions will this dashboard support?",
+                                       "priority":  "High",
+                                       "description":  "The ticket mentions making it \u0027useful for business decisions\u0027 but doesn\u0027t specify:\n* What types of business decisions?\n* Who are the decision-makers (executives, managers, analysts)?\n* What information do they need to make these decisions?\n* Are there specific workflows or processes this supports?"
+                                   }
+                               ],
+                     "Count":  5
+                 },
+    "ticket":  {
+                   "key":  "ATL-2"
+               }
+}

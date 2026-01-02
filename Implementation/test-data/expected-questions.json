@@ -1,0 +1,82 @@
+[
+  {
+    "ticket": "Sample 2: Dashboard Analytics",
+    "description": "Vague requirements about analytics dashboard",
+    "expectedQuestions": [
+      {
+        "summary": "What specific metrics should be displayed on the dashboard?",
+        "priority": "High",
+        "description": "The story mentions 'data and metrics' but doesn't specify:\n* Which KPIs are most important?\n* What business metrics are needed?\n* Should metrics be user-specific or org-wide?"
+      },
+      {
+        "summary": "Which user roles can access the dashboard?",
+        "priority": "High",
+        "description": "Please clarify:\n* Is this for all users or specific roles?\n* Are there different views for different roles?\n* What are the permission requirements?"
+      },
+      {
+        "summary": "What time periods should the analytics cover?",
+        "priority": "Medium",
+        "description": "The requirements don't specify:\n* Last 24 hours, 7 days, 30 days, custom range?\n* Should users be able to select time periods?\n* Is historical data needed?"
+      },
+      {
+        "summary": "What types of charts and graphs are preferred?",
+        "priority": "Medium",
+        "description": "Please specify:\n* Line charts, bar charts, pie charts, tables?\n* Are there design mockups available?\n* Should charts be interactive?"
+      },
+      {
+        "summary": "What performance requirements define 'fast'?",
+        "priority": "High",
+        "description": "The story mentions 'fast' but doesn't quantify:\n* What is the target load time?\n* How many concurrent users?\n* Should data be cached?"
+      },
+      {
+        "summary": "Are there data export requirements?",
+        "priority": "Low",
+        "description": "Should users be able to:\n* Export data to Excel/CSV?\n* Schedule automated reports?\n* Share dashboard views with others?"
+      }
+    ]
+  },
+  {
+    "ticket": "Sample 7: File Upload",
+    "description": "File upload with vague validation requirements",
+    "expectedQuestions": [
+      {
+        "summary": "What is the maximum file size per upload?",
+        "priority": "High",
+        "description": "File size limits need to be specified:\n* Maximum size per file?\n* Maximum total storage per user?\n* Should there be different limits for different file types?"
+      },
+      {
+        "summary": "What specific image/document/video formats are supported?",
+        "priority": "High",
+        "description": "Please list exact formats:\n* Images: JPEG, PNG, GIF, WebP, SVG, TIFF?\n* Documents: PDF, DOCX, TXT, XLSX, PPTX?\n* Videos: MP4, AVI, MOV, MKV, WebM?"
+      },
+      {
+        "summary": "What validation rules define 'bad files'?",
+        "priority": "High",
+        "description": "Validation requirements unclear:\n* Virus/malware scanning?\n* File type validation (magic numbers vs extension)?\n* Content validation (e.g., image contains inappropriate content)?\n* File name restrictions?"
+      },
+      {
+        "summary": "Where and how should files be stored?",
+        "priority": "High",
+        "description": "Storage architecture needs clarification:\n* Cloud storage (S3, Azure Blob, Google Cloud Storage)?\n* Local filesystem?\n* CDN for delivery?\n* Backup and redundancy requirements?"
+      },
+      {
+        "summary": "What is the file retention policy?",
+        "priority": "Medium",
+        "description": "Please specify:\n* How long should files be kept?\n* Should deleted files be recoverable?\n* Are there compliance requirements (GDPR, HIPAA)?"
+      }
+    ]
+  },
+  {
+    "ticket": "Sample 1: User Login",
+    "description": "Clear requirements with detailed specs",
+    "expectedQuestions": [
+      {
+        "summary": "Should there be account lockout after failed login attempts?",
+        "priority": "Medium",
+        "description": "Security consideration not mentioned:\n* How many failed attempts before lockout?\n* How long should lockout last?\n* Should there be CAPTCHA after X attempts?"
+      }
+    ],
+    "note": "This ticket has clear requirements, so only 0-2 questions expected"
+  }
+]
+

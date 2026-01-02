@@ -1,0 +1,1834 @@
+[To redirect Truffle log output to a file use one of the following options:
+* '--log.file=<path>' if the option is passed using a guest language launcher.
+* '-Dpolyglot.log.file=<path>' if the option is passed using the host Java launcher.
+* Configure logging using the polyglot embedding API.]
+[engine] WARNING: The polyglot engine uses a fallback runtime that does not support runtime compilation to native code.
+Execution without runtime compilation will negatively impact the guest application performance.
+The following cause was found: JVMCI is not enabled for this JVM. Enable JVMCI using -XX:+EnableJVMCI.
+For more information see: https://www.graalvm.org/latest/reference-manual/embed-languages/#runtime-optimization-support.
+To disable this warning use the '--engine.WarnInterpreterOnly=false' option or the '-Dpolyglot.engine.WarnInterpreterOnly=false' system property.
+[To redirect Truffle log output to a file use one of the following options:
+* '--log.file=<path>' if the option is passed using a guest language launcher.
+* '-Dpolyglot.log.file=<path>' if the option is passed using the host Java launcher.
+* Configure logging using the polyglot embedding API.]
+[engine] WARNING: The polyglot engine uses a fallback runtime that does not support runtime compilation to native code.
+Execution without runtime compilation will negatively impact the guest application performance.
+The following cause was found: JVMCI is not enabled for this JVM. Enable JVMCI using -XX:+EnableJVMCI.
+For more information see: https://www.graalvm.org/latest/reference-manual/embed-languages/#runtime-optimization-support.
+To disable this warning use the '--engine.WarnInterpreterOnly=false' option or the '-Dpolyglot.engine.WarnInterpreterOnly=false' system property.
+[To redirect Truffle log output to a file use one of the following options:
+* '--log.file=<path>' if the option is passed using a guest language launcher.
+* '-Dpolyglot.log.file=<path>' if the option is passed using the host Java launcher.
+* Configure logging using the polyglot embedding API.]
+[engine] WARNING: The polyglot engine uses a fallback runtime that does not support runtime compilation to native code.
+Execution without runtime compilation will negatively impact the guest application performance.
+The following cause was found: JVMCI is not enabled for this JVM. Enable JVMCI using -XX:+EnableJVMCI.
+For more information see: https://www.graalvm.org/latest/reference-manual/embed-languages/#runtime-optimization-support.
+To disable this warning use the '--engine.WarnInterpreterOnly=false' option or the '-Dpolyglot.engine.WarnInterpreterOnly=false' system property.
+{"tools": [
+  {
+    "name": "cli_execute_command",
+    "description": "Execute CLI commands (git, gh, dmtools, npm, yarn, docker, kubectl, terraform, ansible, aws, gcloud, az) from JavaScript post-actions. Returns command output as string. Commands execute synchronously with environment variables inherited from workflow context. Only whitelisted commands allowed for security.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["command"],
+      "properties": {
+        "workingDirectory": {
+          "type": "string",
+          "description": "Working directory for command execution. Defaults to repository root if not specified. Use absolute path or path relative to current directory.",
+          "example": "/path/to/repo"
+        },
+        "command": {
+          "type": "string",
+          "description": "CLI command to execute. Must start with whitelisted command (git, gh, dmtools, npm, yarn, docker, kubectl, terraform, ansible, aws, gcloud, az).",
+          "example": "git commit -m 'Automated update'"
+        }
+      }
+    }
+  },
+  {
+    "name": "confluence_contents_by_urls",
+    "description": "Get Confluence content by multiple URLs. Returns a list of content objects for each valid URL.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["urlStrings"],
+      "properties": {"urlStrings": {
+        "type": "array",
+        "description": "Array of Confluence URLs to retrieve content from",
+        "example": "['https://confluence.example.com/wiki/spaces/SPACE/pages/123/Page+Title']"
+      }}
+    }
+  },
+  {
+    "name": "confluence_search_content_by_text",
+    "description": "Search Confluence content by text query using CQL (Confluence Query Language). Returns search results with content excerpts.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "query",
+        "limit"
+      ],
+      "properties": {
+        "limit": {
+          "type": "number",
+          "description": "Maximum number of search results to return",
+          "example": "10"
+        },
+        "query": {
+          "type": "string",
+          "description": "Search query text to find in Confluence content",
+          "example": "project documentation"
+        }
+      }
+    }
+  },
+  {
+    "name": "confluence_content_by_id",
+    "description": "Get Confluence content by its unique content ID. Returns detailed content information including body, version, and metadata.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["contentId"],
+      "properties": {"contentId": {
+        "type": "string",
+        "description": "The unique content ID of the Confluence page",
+        "example": "123456"
+      }}
+    }
+  },
+  {
+    "name": "confluence_content_by_title_and_space",
+    "description": "Get Confluence content by title and space key. Returns content result with metadata and body information.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "title",
+        "space"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the Confluence page",
+          "example": "Project Documentation"
+        },
+        "space": {
+          "type": "string",
+          "description": "The space key where the content is located",
+          "example": "PROJ"
+        }
+      }
+    }
+  },
+  {
+    "name": "confluence_get_current_user_profile",
+    "description": "Get the current user's profile information from Confluence. Returns user details for the authenticated user.",
+    "inputSchema": {
+      "type": "object",
+      "required": [],
+      "properties": {}
+    }
+  },
+  {
+    "name": "confluence_get_user_profile_by_id",
+    "description": "Get a specific user's profile information from Confluence by user ID. Returns user details for the specified user.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["userId"],
+      "properties": {"userId": {
+        "type": "string",
+        "description": "The account ID of the user to get profile for",
+        "example": "123456:abcdef-1234-5678-90ab-cdef12345678"
+      }}
+    }
+  },
+  {
+    "name": "confluence_get_content_attachments",
+    "description": "Get all attachments for a specific Confluence content. Returns a list of attachment objects with metadata.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["contentId"],
+      "properties": {"contentId": {
+        "type": "string",
+        "description": "The content ID to get attachments for",
+        "example": "123456"
+      }}
+    }
+  },
+  {
+    "name": "confluence_find_content_by_title_and_space",
+    "description": "Find Confluence content by title and space key. Returns the first matching content or null if not found.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "title",
+        "space"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the content to find",
+          "example": "Project Documentation"
+        },
+        "space": {
+          "type": "string",
+          "description": "The space key where to search for the content",
+          "example": "PROJ"
+        }
+      }
+    }
+  },
+  {
+    "name": "confluence_create_page",
+    "description": "Create a new Confluence page with specified title, parent, body content, and space. Returns the created content object.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "title",
+        "parentId",
+        "body",
+        "space"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the new page",
+          "example": "New Project Page"
+        },
+        "body": {
+          "type": "string",
+          "description": "The body content of the page in Confluence storage format",
+          "example": "<p>This is the page content.<\/p>"
+        },
+        "parentId": {
+          "type": "string",
+          "description": "The ID of the parent page",
+          "example": "123456"
+        },
+        "space": {
+          "type": "string",
+          "description": "The space key where to create the page",
+          "example": "PROJ"
+        }
+      }
+    }
+  },
+  {
+    "name": "confluence_update_page",
+    "description": "Update an existing Confluence page with new title, parent, body content, and space. Returns the updated content object.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "contentId",
+        "title",
+        "parentId",
+        "body",
+        "space"
+      ],
+      "properties": {
+        "contentId": {
+          "type": "string",
+          "description": "The ID of the page to update",
+          "example": "123456"
+        },
+        "title": {
+          "type": "string",
+          "description": "The new title for the page",
+          "example": "Updated Project Page"
+        },
+        "body": {
+          "type": "string",
+          "description": "The new body content of the page in Confluence storage format",
+          "example": "<p>This is the updated page content.<\/p>"
+        },
+        "parentId": {
+          "type": "string",
+          "description": "The ID of the new parent page",
+          "example": "123456"
+        },
+        "space": {
+          "type": "string",
+          "description": "The space key where the page is located",
+          "example": "PROJ"
+        }
+      }
+    }
+  },
+  {
+    "name": "confluence_update_page_with_history",
+    "description": "Update an existing Confluence page with new content and add a history comment. Returns the updated content object.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "contentId",
+        "title",
+        "parentId",
+        "body",
+        "space",
+        "historyComment"
+      ],
+      "properties": {
+        "contentId": {
+          "type": "string",
+          "description": "The ID of the page to update",
+          "example": "123456"
+        },
+        "title": {
+          "type": "string",
+          "description": "The new title for the page",
+          "example": "Updated Project Page"
+        },
+        "body": {
+          "type": "string",
+          "description": "The new body content of the page in Confluence storage format",
+          "example": "<p>This is the updated page content.<\/p>"
+        },
+        "parentId": {
+          "type": "string",
+          "description": "The ID of the new parent page",
+          "example": "123456"
+        },
+        "space": {
+          "type": "string",
+          "description": "The space key where the page is located",
+          "example": "PROJ"
+        },
+        "historyComment": {
+          "type": "string",
+          "description": "Comment to add to the page history",
+          "example": "Updated content based on user feedback"
+        }
+      }
+    }
+  },
+  {
+    "name": "confluence_get_children_by_name",
+    "description": "Get child pages of a Confluence page by space key and content name. Returns a list of child content objects.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "spaceKey",
+        "contentName"
+      ],
+      "properties": {
+        "spaceKey": {
+          "type": "string",
+          "description": "The space key where the parent page is located",
+          "example": "PROJ"
+        },
+        "contentName": {
+          "type": "string",
+          "description": "The name/title of the parent page",
+          "example": "Project Documentation"
+        }
+      }
+    }
+  },
+  {
+    "name": "confluence_get_children_by_id",
+    "description": "Get child pages of a Confluence page by content ID. Returns a list of child content objects.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["contentId"],
+      "properties": {"contentId": {
+        "type": "string",
+        "description": "The content ID of the parent page",
+        "example": "123456"
+      }}
+    }
+  },
+  {
+    "name": "confluence_download_attachment",
+    "description": "Download an attachment file from Confluence to a specified directory.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "attachment",
+        "targetDir"
+      ],
+      "properties": {
+        "attachment": {
+          "type": "object",
+          "description": "The attachment object to download"
+        },
+        "targetDir": {
+          "type": "object",
+          "description": "The target directory to save the file",
+          "example": "/path/to/directory"
+        }
+      }
+    }
+  },
+  {
+    "name": "confluence_find_content",
+    "description": "Find a Confluence page by title in the default space. Returns the page content if found.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {"title": {
+        "type": "string",
+        "description": "Title of the Confluence page to find",
+        "example": "Project Documentation"
+      }}
+    }
+  },
+  {
+    "name": "confluence_find_or_create",
+    "description": "Find a Confluence page by title in the default space, or create it if it doesn't exist. Returns the found or created content.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "title",
+        "parentId",
+        "body"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Title of the page to find or create",
+          "example": "Project Documentation"
+        },
+        "body": {
+          "type": "string",
+          "description": "Body content for the new page (if creation is needed)",
+          "example": "<p>This is the page content.<\/p>"
+        },
+        "parentId": {
+          "type": "string",
+          "description": "ID of the parent page for creation",
+          "example": "123456"
+        }
+      }
+    }
+  },
+  {
+    "name": "confluence_content_by_title",
+    "description": "Get Confluence content by title in the default space. Returns content result with metadata and body information.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {"title": {
+        "type": "string",
+        "description": "Title of the Confluence page to get",
+        "example": "Project Documentation"
+      }}
+    }
+  },
+  {
+    "name": "anthropic_ai_chat",
+    "description": "Send a text message to Anthropic Claude AI and get response",
+    "inputSchema": {
+      "type": "object",
+      "required": ["message"],
+      "properties": {"message": {
+        "type": "string",
+        "description": "Text message to send to AI"
+      }}
+    }
+  },
+  {
+    "name": "anthropic_ai_chat_with_files",
+    "description": "Send a text message to Anthropic Claude AI with file attachments. Supports images, documents, and other file types for analysis and questions.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "message",
+        "filePaths"
+      ],
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Text message to send to Anthropic Claude AI",
+          "example": "What is in this image? Please analyze the document content."
+        },
+        "filePaths": {
+          "type": "array",
+          "description": "Array of file paths to attach to the message",
+          "example": "['/path/to/image.png', '/path/to/document.pdf']"
+        }
+      }
+    }
+  },
+  {
+    "name": "bedrock_ai_chat",
+    "description": "Send a text message to AWS Bedrock AI and get response",
+    "inputSchema": {
+      "type": "object",
+      "required": ["message"],
+      "properties": {"message": {
+        "type": "string",
+        "description": "Text message to send to AI"
+      }}
+    }
+  },
+  {
+    "name": "dial_ai_chat",
+    "description": "Send a text message to Dial AI and get response",
+    "inputSchema": {
+      "type": "object",
+      "required": ["message"],
+      "properties": {"message": {
+        "type": "string",
+        "description": "Text message to send to AI"
+      }}
+    }
+  },
+  {
+    "name": "gemini_ai_chat",
+    "description": "Send a text message to Gemini AI and get response",
+    "inputSchema": {
+      "type": "object",
+      "required": ["message"],
+      "properties": {"message": {
+        "type": "string",
+        "description": "Text message to send to AI"
+      }}
+    }
+  },
+  {
+    "name": "gemini_ai_chat_with_files",
+    "description": "Send a text message to Gemini AI with file attachments. Supports images, documents, and other file types for analysis and questions.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "message",
+        "filePaths"
+      ],
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Text message to send to Gemini AI",
+          "example": "What is in this image? Please analyze the document content."
+        },
+        "filePaths": {
+          "type": "array",
+          "description": "Array of file paths to attach to the message",
+          "example": "['/path/to/image.png', '/path/to/document.pdf']"
+        }
+      }
+    }
+  },
+  {
+    "name": "ollama_ai_chat",
+    "description": "Send a text message to Ollama AI and get response",
+    "inputSchema": {
+      "type": "object",
+      "required": ["message"],
+      "properties": {"message": {
+        "type": "string",
+        "description": "Text message to send to AI"
+      }}
+    }
+  },
+  {
+    "name": "mermaid_index_generate",
+    "description": "Generate Mermaid diagrams from content sources (e.g., Confluence) based on include/exclude patterns. Processes content recursively and stores diagrams in hierarchical file structure.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "integration",
+        "storage_path",
+        "include_patterns"
+      ],
+      "properties": {
+        "integration": {
+          "type": "string",
+          "description": "Integration type (currently only 'confluence' is supported)",
+          "example": "confluence"
+        },
+        "include_patterns": {
+          "type": "array",
+          "description": "Array of include patterns. Format: [\"SPACE/pages/PAGE_ID/PAGE_NAME/**\"] for recursive, [\"SPACE/pages/PAGE_ID/PAGE_NAME\"] for single page, [\"SPACE/pages/PAGE_ID/PAGE_NAME/*\"] for immediate children",
+          "example": "[\"AINA/pages/11665522/Templates/**\"]"
+        },
+        "exclude_patterns": {
+          "type": "array",
+          "description": "Optional array of exclude patterns to filter out specific content",
+          "example": "[]"
+        },
+        "storage_path": {
+          "type": "string",
+          "description": "Base path for storing generated diagrams",
+          "example": "./mermaid-diagrams"
+        }
+      }
+    }
+  },
+  {
+    "name": "mermaid_index_read_list",
+    "description": "Read all Mermaid diagram files (.mmd) from storage path recursively. Returns list of ToText objects with paths and content.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "integration",
+        "storage_path"
+      ],
+      "properties": {
+        "integration": {
+          "type": "string",
+          "description": "Integration type (currently only 'confluence' is supported)",
+          "example": "confluence"
+        },
+        "storage_path": {
+          "type": "string",
+          "description": "Base path where diagrams are stored",
+          "example": "./mermaid-diagrams"
+        }
+      }
+    }
+  },
+  {
+    "name": "mermaid_index_read",
+    "description": "Read all Mermaid diagram files (.mmd) from storage path recursively. Returns list of diagrams with their paths and content.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "integration",
+        "storage_path"
+      ],
+      "properties": {
+        "integration": {
+          "type": "string",
+          "description": "Integration type (currently only 'confluence' is supported)",
+          "example": "confluence"
+        },
+        "storage_path": {
+          "type": "string",
+          "description": "Base path where diagrams are stored",
+          "example": "./mermaid-diagrams"
+        }
+      }
+    }
+  },
+  {
+    "name": "file_read",
+    "description": "Read file content from working directory (supports input/ and outputs/ folders). Returns file content as string or null if file doesn't exist or is inaccessible. All file formats supported as UTF-8 text.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {"path": {
+        "type": "string",
+        "description": "File path relative to working directory or absolute path within working directory",
+        "example": "outputs/response.md"
+      }}
+    }
+  },
+  {
+    "name": "file_write",
+    "description": "Write content to file in working directory. Creates parent directories automatically. Returns success message or null on failure.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "path",
+        "content"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File path relative to working directory or absolute path within working directory",
+          "example": "inbox/raw/teams_messages/1729766400000-messages.json"
+        },
+        "content": {
+          "type": "string",
+          "description": "Content to write to the file as UTF-8 string",
+          "example": "{\"messages\": []}"
+        }
+      }
+    }
+  },
+  {
+    "name": "file_validate_json",
+    "description": "Validate JSON string and return detailed error information if invalid. Returns JSON string with validation result: {\"valid\": true} for valid JSON, or {\"valid\": false, \"error\": \"error message\", \"line\": line_number, \"column\": column_number, \"position\": character_position, \"context\": \"context around error\"} for invalid JSON.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["json"],
+      "properties": {"json": {
+        "type": "string",
+        "description": "JSON string to validate",
+        "example": "{\"key\": \"value\"}"
+      }}
+    }
+  },
+  {
+    "name": "file_validate_json_file",
+    "description": "Validate JSON file and return detailed error information if invalid. Reads file from working directory and validates its JSON content. Returns JSON string with validation result including file path.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {"path": {
+        "type": "string",
+        "description": "File path relative to working directory or absolute path within working directory",
+        "example": "outputs/response.json"
+      }}
+    }
+  },
+  {
+    "name": "figma_get_screen_source",
+    "description": "Get screen source content by URL. Returns the image URL for the specified Figma design node.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["url"],
+      "properties": {"url": {
+        "type": "string",
+        "description": "Figma design URL with node-id parameter",
+        "example": "https://www.figma.com/file/abc123/Design?node-id=1%3A2"
+      }}
+    }
+  },
+  {
+    "name": "figma_download_node_image",
+    "description": "Download image of specific node/component. Useful for visual preview of design pieces before processing structure.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "href",
+        "nodeId"
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "description": "Image format: png or jpg"
+        },
+        "scale": {
+          "type": "number",
+          "description": "Scale factor: 1, 2, or 4"
+        },
+        "href": {
+          "type": "string",
+          "description": "Figma design URL"
+        },
+        "nodeId": {
+          "type": "string",
+          "description": "Node ID to download"
+        }
+      }
+    }
+  },
+  {
+    "name": "figma_download_image_of_file",
+    "description": "Download image by URL as File type. Converts Figma design URL to downloadable image file.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["href"],
+      "properties": {"href": {
+        "type": "string",
+        "description": "Figma design URL to download as image file",
+        "example": "https://www.figma.com/file/abc123/Design?node-id=1%3A2"
+      }}
+    }
+  },
+  {
+    "name": "figma_get_icons",
+    "description": "Find and extract all exportable visual elements (vectors, shapes, graphics, text) from Figma design by URL. Focuses on actual visual elements to avoid complex component references.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["href"],
+      "properties": {"href": {
+        "type": "string",
+        "description": "Figma design URL to extract visual elements from",
+        "example": "https://www.figma.com/file/abc123/Design"
+      }}
+    }
+  },
+  {
+    "name": "figma_download_image_as_file",
+    "description": "Download image as file by node ID and format. Use this after figma_get_icons to download actual icon files.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "href",
+        "nodeId",
+        "format"
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "description": "Export format",
+          "example": "png"
+        },
+        "nodeId": {
+          "type": "string",
+          "description": "Node ID to export (from figma_get_icons result)",
+          "example": "123:456"
+        },
+        "href": {
+          "type": "string",
+          "description": "Figma design URL to extract file ID from",
+          "example": "https://www.figma.com/file/abc123/Design"
+        }
+      }
+    }
+  },
+  {
+    "name": "figma_get_svg_content",
+    "description": "Get SVG content as text by node ID. Use this after figma_get_icons to get SVG code for vector icons.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "href",
+        "nodeId"
+      ],
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "Node ID to export as SVG (from figma_get_icons result)",
+          "example": "123:456"
+        },
+        "href": {
+          "type": "string",
+          "description": "Figma design URL to extract file ID from",
+          "example": "https://www.figma.com/file/abc123/Design"
+        }
+      }
+    }
+  },
+  {
+    "name": "figma_get_node_details",
+    "description": "Get detailed properties for specific node(s) including colors, fonts, text, dimensions, and styles. Returns small focused response.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "href",
+        "nodeIds"
+      ],
+      "properties": {
+        "nodeIds": {
+          "type": "string",
+          "description": "Comma-separated node IDs (max 10)"
+        },
+        "href": {
+          "type": "string",
+          "description": "Figma design URL"
+        }
+      }
+    }
+  },
+  {
+    "name": "figma_get_text_content",
+    "description": "Extract text content from text nodes. Returns map of nodeId to text content.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "href",
+        "nodeIds"
+      ],
+      "properties": {
+        "nodeIds": {
+          "type": "string",
+          "description": "Comma-separated text node IDs (max 20)"
+        },
+        "href": {
+          "type": "string",
+          "description": "Figma design URL"
+        }
+      }
+    }
+  },
+  {
+    "name": "figma_get_styles",
+    "description": "Get design tokens (colors, text styles) defined in Figma file.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["href"],
+      "properties": {"href": {
+        "type": "string",
+        "description": "Figma design URL"
+      }}
+    }
+  },
+  {
+    "name": "figma_get_layers",
+    "description": "Get first-level layers (direct children) to understand structure. Returns layer names, IDs, types, sizes. Essential first step before getting details.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["href"],
+      "properties": {"href": {
+        "type": "string",
+        "description": "Figma design URL with node-id"
+      }}
+    }
+  },
+  {
+    "name": "figma_get_layers_batch",
+    "description": "Get layers for multiple nodes at once. More efficient for analyzing multiple screens/containers. Returns map of nodeId to layers.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "href",
+        "nodeIds"
+      ],
+      "properties": {
+        "nodeIds": {
+          "type": "string",
+          "description": "Comma-separated node IDs (max 10)"
+        },
+        "href": {
+          "type": "string",
+          "description": "Figma design URL"
+        }
+      }
+    }
+  },
+  {
+    "name": "figma_get_node_children",
+    "description": "Get immediate children IDs and basic info for a node. Non-recursive, returns only direct children.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["href"],
+      "properties": {"href": {
+        "type": "string",
+        "description": "Figma design URL with node-id"
+      }}
+    }
+  },
+  {
+    "name": "teams_auth_start",
+    "description": "Start device code authentication for Microsoft Teams. Returns URL and code for user to authenticate.",
+    "inputSchema": {
+      "type": "object",
+      "required": [],
+      "properties": {}
+    }
+  },
+  {
+    "name": "teams_auth_complete",
+    "description": "Complete device code authentication after user approval. Polls for tokens and saves refresh token.",
+    "inputSchema": {
+      "type": "object",
+      "required": [],
+      "properties": {}
+    }
+  },
+  {
+    "name": "teams_auth_status",
+    "description": "Check current Microsoft Teams authentication status and configuration.",
+    "inputSchema": {
+      "type": "object",
+      "required": [],
+      "properties": {}
+    }
+  },
+  {
+    "name": "kb_get",
+    "description": "Get last sync date for a knowledge base source. Returns ISO 8601 date string or 'Source not found' message.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["source_name"],
+      "properties": {
+        "output_path": {
+          "type": "string",
+          "description": "Optional path to KB directory. Defaults to DMTOOLS_KB_OUTPUT_PATH env var or current directory",
+          "example": "/path/to/knowledge-base"
+        },
+        "source_name": {
+          "type": "string",
+          "description": "Name of the data source (e.g., 'teams_chat', 'slack_general')",
+          "example": "teams_chat"
+        }
+      }
+    }
+  },
+  {
+    "name": "kb_build",
+    "description": "Build or update knowledge base from input file. Processes chat messages, documentation, or any text data to create indexed, searchable knowledge base. Returns JSON with statistics.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "source_name",
+        "input_file",
+        "date_time"
+      ],
+      "properties": {
+        "input_file": {
+          "type": "string",
+          "description": "Path to input file (JSON or text format). Can be JSON array of messages or plain text.",
+          "example": "/path/to/messages.json"
+        },
+        "output_path": {
+          "type": "string",
+          "description": "Optional path to KB directory. Defaults to DMTOOLS_KB_OUTPUT_PATH env var or current directory",
+          "example": "/path/to/knowledge-base"
+        },
+        "date_time": {
+          "type": "string",
+          "description": "Sync date/time in ISO 8601 format (e.g., '2024-10-10T12:00:00Z')",
+          "example": "2024-10-10T12:00:00Z"
+        },
+        "source_name": {
+          "type": "string",
+          "description": "Name of the data source (e.g., 'teams_chat', 'slack_general')",
+          "example": "teams_chat"
+        },
+        "clean_source": {
+          "type": "string",
+          "description": "Optional. If true, removes all existing Q/A/N from this source before processing. Use for content refresh (e.g., Confluence pages).",
+          "example": "true"
+        }
+      }
+    }
+  },
+  {
+    "name": "kb_process",
+    "description": "Process input file and build KB structure WITHOUT generating AI descriptions (fast mode). Use this for bulk data processing. Run kb_aggregate later to generate descriptions.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "source_name",
+        "input_file",
+        "date_time"
+      ],
+      "properties": {
+        "input_file": {
+          "type": "string",
+          "description": "Path to input file (JSON or text format). Can be JSON array of messages or plain text.",
+          "example": "/path/to/messages.json"
+        },
+        "output_path": {
+          "type": "string",
+          "description": "Optional path to KB directory. Defaults to DMTOOLS_KB_OUTPUT_PATH env var or current directory",
+          "example": "/path/to/knowledge-base"
+        },
+        "date_time": {
+          "type": "string",
+          "description": "Sync date/time in ISO 8601 format (e.g., '2024-10-10T12:00:00Z')",
+          "example": "2024-10-10T12:00:00Z"
+        },
+        "source_name": {
+          "type": "string",
+          "description": "Name of the data source (e.g., 'teams_chat', 'slack_general')",
+          "example": "teams_chat"
+        },
+        "clean_source": {
+          "type": "string",
+          "description": "Optional. If true, removes all existing Q/A/N from this source before processing. Use for content refresh (e.g., Confluence pages).",
+          "example": "true"
+        }
+      }
+    }
+  },
+  {
+    "name": "kb_aggregate",
+    "description": "Generate AI descriptions for existing KB structure WITHOUT processing new data. Use this after kb_process to add AI-generated descriptions for people and topics.",
+    "inputSchema": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "smart_mode": {
+          "type": "string",
+          "description": "Only regenerate descriptions if Q/A/N files have changed. Default: true",
+          "example": "true"
+        },
+        "output_path": {
+          "type": "string",
+          "description": "Optional path to KB directory. Defaults to DMTOOLS_KB_OUTPUT_PATH env var or current directory",
+          "example": "/path/to/knowledge-base"
+        },
+        "source_name": {
+          "type": "string",
+          "description": "Optional: Filter to only regenerate for specific source. If null/empty, regenerates for ALL sources (recommended for description regeneration).",
+          "example": "teams_chat"
+        }
+      }
+    }
+  },
+  {
+    "name": "kb_process_inbox",
+    "description": "Scan inbox/raw/ folders and process all unprocessed files automatically. Files are processed in place. Returns JSON with processed and skipped file details.",
+    "inputSchema": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "generate_descriptions": {
+          "type": "string",
+          "description": "Generate AI descriptions after processing. Default: true",
+          "example": "true"
+        },
+        "output_path": {
+          "type": "string",
+          "description": "Optional path to KB directory. Defaults to DMTOOLS_KB_OUTPUT_PATH env var or current directory",
+          "example": "/path/to/knowledge-base"
+        },
+        "smart_aggregation": {
+          "type": "string",
+          "description": "Only regenerate descriptions if Q/A/N changed. Default: true",
+          "example": "true"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_delete_ticket",
+    "description": "Delete a Jira ticket by key",
+    "inputSchema": {
+      "type": "object",
+      "required": ["key"],
+      "properties": {"key": {
+        "type": "string",
+        "description": "The Jira ticket key to delete",
+        "example": "PRJ-123"
+      }}
+    }
+  },
+  {
+    "name": "jira_get_account_by_email",
+    "description": "Gets account details by email",
+    "inputSchema": {
+      "type": "object",
+      "required": ["email"],
+      "properties": {"email": {
+        "type": "string",
+        "description": "The Jira Email",
+        "example": "email@email.com"
+      }}
+    }
+  },
+  {
+    "name": "jira_assign_ticket_to",
+    "description": "Assigns a Jira ticket to user",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "accountId"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "description": "The Jira account ID to assign to. If you know email use first jira_get_account_by_email tools to get account ID",
+          "example": "123457:2a123456-40e8-49d6-8ddc-6852e518451f"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to assign",
+          "example": "PRJ-123"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_add_label",
+    "description": "Adding label to specific ticket key",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "label"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to assign",
+          "example": "PRJ-123"
+        },
+        "label": {
+          "type": "string",
+          "description": "The label to be added to ticket",
+          "example": "custom_label"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_search_by_jql",
+    "description": "Search for Jira tickets using JQL and returns all results",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "searchQueryJQL",
+        "fields"
+      ],
+      "properties": {
+        "fields": {
+          "type": "array",
+          "description": "Parameter fields"
+        },
+        "searchQueryJQL": {
+          "type": "string",
+          "description": "Parameter searchQueryJQL"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_search_with_pagination",
+    "description": "[Deprecated] Search for Jira tickets using JQL with pagination support",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "jql",
+        "startAt",
+        "fields"
+      ],
+      "properties": {
+        "jql": {
+          "type": "string",
+          "description": "JQL query string to search for tickets",
+          "example": "project = PROJ AND status = Open"
+        },
+        "fields": {
+          "type": "array",
+          "description": "Array of field names to include in the response",
+          "example": "['summary', 'status', 'assignee']"
+        },
+        "startAt": {
+          "type": "number",
+          "description": "Starting index for pagination (0-based)",
+          "example": "0"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_search_by_page",
+    "description": "Search for Jira tickets using JQL with paging support",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "jql",
+        "nextPageToken",
+        "fields"
+      ],
+      "properties": {
+        "jql": {
+          "type": "string",
+          "description": "JQL query string to search for tickets",
+          "example": "project = PROJ AND status = Open"
+        },
+        "fields": {
+          "type": "array",
+          "description": "Array of field names to include in the response",
+          "example": "['summary', 'status', 'assignee']"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "description": "Next Page Token from previous response, empty by default for 1 page",
+          "example": "AasvvasasaSASdada"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_get_my_profile",
+    "description": "Get the current user's profile information from Jira",
+    "inputSchema": {
+      "type": "object",
+      "required": [],
+      "properties": {}
+    }
+  },
+  {
+    "name": "jira_get_user_profile",
+    "description": "Get a specific user's profile information from Jira",
+    "inputSchema": {
+      "type": "object",
+      "required": ["userId"],
+      "properties": {"userId": {
+        "type": "string",
+        "description": "The user ID to get profile for"
+      }}
+    }
+  },
+  {
+    "name": "jira_get_ticket",
+    "description": "Get a specific Jira ticket by key with optional field filtering",
+    "inputSchema": {
+      "type": "object",
+      "required": ["key"],
+      "properties": {
+        "fields": {
+          "type": "array",
+          "description": "Optional array of fields to include in the response"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to retrieve"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_get_subtasks",
+    "description": "Get all subtasks of a specific Jira ticket using jql: parent = PRJ-123 and issueType in (subtask, sub-task, 'sub task')",
+    "inputSchema": {
+      "type": "object",
+      "required": ["key"],
+      "properties": {"key": {
+        "type": "string",
+        "description": "The parent ticket key to get subtasks for"
+      }}
+    }
+  },
+  {
+    "name": "jira_post_comment_if_not_exists",
+    "description": "Post a comment to a Jira ticket only if it doesn't already exist. Supports Jira markup syntax: h2. for headings, *text* for bold, {code}text{code} for inline code, * for bullet lists",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "comment"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to post comment to"
+        },
+        "comment": {
+          "type": "string",
+          "description": "The comment text to post (supports Jira markup: h2. headings, *bold*, {code}code{code}, * lists)"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_get_comments",
+    "description": "Get all comments for a specific Jira ticket",
+    "inputSchema": {
+      "type": "object",
+      "required": ["key"],
+      "properties": {
+        "ticket": {
+          "type": "object",
+          "description": "Optional ticket object for cache validation"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to get comments for"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_post_comment",
+    "description": "Post a comment to a Jira ticket. Supports Jira markup syntax: h2. for headings, *text* for bold, {code}text{code} for inline code, * for bullet lists",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "comment"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to post comment to"
+        },
+        "comment": {
+          "type": "string",
+          "description": "The comment text to post (supports Jira markup: h2. headings, *bold*, {code}code{code}, * lists)"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_get_fix_versions",
+    "description": "Get all fix versions for a specific Jira project",
+    "inputSchema": {
+      "type": "object",
+      "required": ["project"],
+      "properties": {"project": {
+        "type": "string",
+        "description": "The Jira project key to get fix versions for"
+      }}
+    }
+  },
+  {
+    "name": "jira_get_components",
+    "description": "Get all components for a specific Jira project",
+    "inputSchema": {
+      "type": "object",
+      "required": ["project"],
+      "properties": {"project": {
+        "type": "string",
+        "description": "The Jira project key to get components for"
+      }}
+    }
+  },
+  {
+    "name": "jira_get_project_statuses",
+    "description": "Get all statuses for a specific Jira project",
+    "inputSchema": {
+      "type": "object",
+      "required": ["project"],
+      "properties": {"project": {
+        "type": "string",
+        "description": "The Jira project key to get statuses for"
+      }}
+    }
+  },
+  {
+    "name": "jira_create_ticket_with_parent",
+    "description": "Create a new Jira ticket with a parent relationship",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "project",
+        "issueType",
+        "summary",
+        "description",
+        "parentKey"
+      ],
+      "properties": {
+        "issueType": {
+          "type": "string",
+          "description": "The type of issue to create (e.g., Bug, Story, Task)"
+        },
+        "summary": {
+          "type": "string",
+          "description": "The ticket summary/title"
+        },
+        "project": {
+          "type": "string",
+          "description": "The Jira project key to create the ticket in"
+        },
+        "description": {
+          "type": "string",
+          "description": "The ticket description"
+        },
+        "parentKey": {
+          "type": "string",
+          "description": "The key of the parent ticket"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_create_ticket_basic",
+    "description": "Create a new Jira ticket with basic fields (project, issue type, summary, description)",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "project",
+        "issueType",
+        "summary",
+        "description"
+      ],
+      "properties": {
+        "issueType": {
+          "type": "string",
+          "description": "The type of issue to create (e.g., Bug, Story, Task)"
+        },
+        "summary": {
+          "type": "string",
+          "description": "The ticket summary/title (e.g., Fix login issue)"
+        },
+        "project": {
+          "type": "string",
+          "description": "The Jira project key to create the ticket in (e.g., PROJ)"
+        },
+        "description": {
+          "type": "string",
+          "description": "The ticket description. Supports Jira markup syntax: h2. for headings, *text* for bold, {code}text{code} for inline code, * for bullet lists"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_create_ticket_with_json",
+    "description": "Create a new Jira ticket with custom fields using JSON configuration",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "project",
+        "fieldsJson"
+      ],
+      "properties": {
+        "project": {
+          "type": "string",
+          "description": "The Jira project key to create the ticket in (e.g., PROJ)"
+        },
+        "fieldsJson": {
+          "type": "object",
+          "description": "JSON object containing ticket fields in Jira format (e.g., {\"summary\": \"Ticket Summary\", \"description\": \"Ticket Description\", \"issuetype\": {\"name\": \"Task\"}, \"priority\": {\"name\": \"High\"}}), Supports Jira markup syntax: h2. for headings, *text* for bold, {code}text{code} for inline code, * for bullet lists"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_update_description",
+    "description": "Update the description of a Jira ticket. Supports Jira markup syntax: h2. for headings, *text* for bold, {code}text{code} for inline code, * for bullet lists",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "The new description text (supports Jira markup: h2. headings, *bold*, {code}code{code}, * lists)"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to update"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_update_ticket_parent",
+    "description": "Update the parent of a Jira ticket. Can be used for setting up epic relationships and parent-child relationships for subtasks",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "parentKey"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to update"
+        },
+        "parentKey": {
+          "type": "string",
+          "description": "The key of the new parent ticket"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_update_ticket",
+    "description": "Update a Jira ticket using JSON parameters following the standard Jira REST API format",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "params"
+      ],
+      "properties": {
+        "params": {
+          "type": "object",
+          "description": "JSON object containing update parameters in Jira format (e.g., {\"fields\": {\"summary\": \"New Summary\", \"parent\": {\"key\": \"PROJ-123\"}}})"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to update"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_update_field",
+    "description": "Update a specific field of a Jira ticket. Supports both custom field IDs (e.g., description, 'customfield_10091') and user-friendly field names (e.g., 'Diagram')",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "field",
+        "value"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "The field name to update (supports both custom field IDs like 'customfield_10091' and user-friendly names like 'Diagram')"
+        },
+        "value": {
+          "type": "object",
+          "description": "The new value for the field"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to update"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_execute_request",
+    "description": "Execute a custom HTTP GET request to Jira API with auth. Can be used to perform any jira get requests which are required auth.",
+    "inputSchema": {
+      "type": "object",
+      "required": ["url"],
+      "properties": {"url": {
+        "type": "string",
+        "description": "The Jira API URL to execute"
+      }}
+    }
+  },
+  {
+    "name": "jira_attach_file_to_ticket",
+    "description": "Attach a file to a Jira ticket from a local file path. The file will only be attached if a file with the same name doesn't already exist",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "ticketKey",
+        "name",
+        "filePath"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the file to attach",
+          "example": "document.pdf"
+        },
+        "ticketKey": {
+          "type": "string",
+          "description": "The Jira ticket key to attach the file to",
+          "example": "PRJ-123"
+        },
+        "contentType": {
+          "type": "string",
+          "description": "The content type of the file (e.g., 'application/pdf', 'image/png'). If not provided, defaults to 'image/*'",
+          "example": "application/pdf"
+        },
+        "filePath": {
+          "type": "string",
+          "description": "Absolute path to the file on disk",
+          "example": "/tmp/document.pdf"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_get_transitions",
+    "description": "Get all available transitions(statuses, workflows) for a Jira ticket",
+    "inputSchema": {
+      "type": "object",
+      "required": ["key"],
+      "properties": {"key": {
+        "type": "string",
+        "description": "The Jira ticket key to get transitions for"
+      }}
+    }
+  },
+  {
+    "name": "jira_move_to_status",
+    "description": "Move a Jira ticket to a specific status (workflow, transition)",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "statusName"
+      ],
+      "properties": {
+        "statusName": {
+          "type": "string",
+          "description": "The target status name"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to move"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_move_to_status_with_resolution",
+    "description": "Move a Jira ticket to a specific status (workflow, transition) with resolution",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "statusName",
+        "resolution"
+      ],
+      "properties": {
+        "statusName": {
+          "type": "string",
+          "description": "The target status name"
+        },
+        "resolution": {
+          "type": "string",
+          "description": "The resolution to set"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to move"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_clear_field",
+    "description": "Clear (delete value) a specific field value in a Jira ticket",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "field"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "The field name to clear"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to clear field from"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_set_fix_version",
+    "description": "Set the fix version for a Jira ticket",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "fixVersion"
+      ],
+      "properties": {
+        "fixVersion": {
+          "type": "string",
+          "description": "The fix version name to set"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to set fix version for"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_add_fix_version",
+    "description": "Add a fix version to a Jira ticket (without removing existing ones)",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "fixVersion"
+      ],
+      "properties": {
+        "fixVersion": {
+          "type": "string",
+          "description": "The fix version name to add"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to add fix version to"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_set_priority",
+    "description": "Set the priority for a Jira ticket",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "priority"
+      ],
+      "properties": {
+        "priority": {
+          "type": "string",
+          "description": "The priority name to set"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to set priority for"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_remove_fix_version",
+    "description": "Remove a fix version from a Jira ticket",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "key",
+        "fixVersion"
+      ],
+      "properties": {
+        "fixVersion": {
+          "type": "string",
+          "description": "The fix version name to remove"
+        },
+        "key": {
+          "type": "string",
+          "description": "The Jira ticket key to remove fix version from"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_download_attachment",
+    "description": "Download a Jira attachment by URL and save it as a file",
+    "inputSchema": {
+      "type": "object",
+      "required": ["href"],
+      "properties": {"href": {
+        "type": "string",
+        "description": "The attachment URL to download"
+      }}
+    }
+  },
+  {
+    "name": "jira_get_fields",
+    "description": "Get all available fields for a Jira project",
+    "inputSchema": {
+      "type": "object",
+      "required": ["project"],
+      "properties": {"project": {
+        "type": "string",
+        "description": "The Jira project key to get fields for"
+      }}
+    }
+  },
+  {
+    "name": "jira_get_issue_types",
+    "description": "Get all available issue types for a specific Jira project",
+    "inputSchema": {
+      "type": "object",
+      "required": ["project"],
+      "properties": {"project": {
+        "type": "string",
+        "description": "The Jira project key to get issue types for"
+      }}
+    }
+  },
+  {
+    "name": "jira_get_field_custom_code",
+    "description": "Get the custom field code for a human friendly field name in a Jira project",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "project",
+        "fieldName"
+      ],
+      "properties": {
+        "project": {
+          "type": "string",
+          "description": "The Jira project key"
+        },
+        "fieldName": {
+          "type": "string",
+          "description": "The human-readable field name"
+        }
+      }
+    }
+  },
+  {
+    "name": "jira_get_issue_link_types",
+    "description": "Get all available issue link types/relationships in Jira",
+    "inputSchema": {
+      "type": "object",
+      "required": [],
+      "properties": {}
+    }
+  },
+  {
+    "name": "jira_link_issues",
+    "description": "Link two Jira issues with a specific relationship type",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "sourceKey",
+        "anotherKey",
+        "relationship"
+      ],
+      "properties": {
+        "sourceKey": {
+          "type": "string",
+          "description": "The source issue key"
+        },
+        "relationship": {
+          "type": "string",
+          "description": "The relationship type name"
+        },
+        "anotherKey": {
+          "type": "string",
+          "description": "The target issue key"
+        }
+      }
+    }
+  }
+]}

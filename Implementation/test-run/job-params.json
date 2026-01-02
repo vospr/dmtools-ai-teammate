@@ -1,0 +1,260 @@
+﻿{
+    "initiator":  "712020:9bccb0d5-3074-42f1-8d6e-54d564d50a5f",
+    "response":  [
+                     null,
+                     null,
+                     null,
+                     null,
+                     null
+                 ],
+    "ticket":  {
+                   "key":  "ATL-2",
+                   "fields":  {
+                                  "statuscategorychangedate":  "2026-01-01T09:35:32.783+0100",
+                                  "issuetype":  {
+                                                    "avatarId":  10680,
+                                                    "hierarchyLevel":  0,
+                                                    "name":  "Task",
+                                                    "self":  "https://vospr.atlassian.net/rest/api/3/issuetype/10010",
+                                                    "description":  "A task that needs to be done.",
+                                                    "id":  "10010",
+                                                    "iconUrl":  "https://vospr.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10680?size=medium",
+                                                    "subtask":  false
+                                                },
+                                  "customfield_10070":  null,
+                                  "customfield_10071":  null,
+                                  "customfield_10072":  null,
+                                  "timespent":  null,
+                                  "customfield_10073":  null,
+                                  "customfield_10074":  [
+
+                                                        ],
+                                  "customfield_10030":  null,
+                                  "project":  {
+                                                  "simplified":  false,
+                                                  "avatarUrls":  {
+                                                                     "48x48":  "https://vospr.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10412",
+                                                                     "24x24":  "https://vospr.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10412?size=small",
+                                                                     "16x16":  "https://vospr.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10412?size=xsmall",
+                                                                     "32x32":  "https://vospr.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10412?size=medium"
+                                                                 },
+                                                  "name":  "AI Teammate Learning",
+                                                  "self":  "https://vospr.atlassian.net/rest/api/3/project/10036",
+                                                  "id":  "10036",
+                                                  "projectTypeKey":  "software",
+                                                  "key":  "ATL"
+                                              },
+                                  "customfield_10031":  null,
+                                  "customfield_10032":  null,
+                                  "fixVersions":  [
+
+                                                  ],
+                                  "customfield_10033":  null,
+                                  "statusCategory":  {
+                                                         "colorName":  "blue-gray",
+                                                         "name":  "To Do",
+                                                         "self":  "https://vospr.atlassian.net/rest/api/3/statuscategory/2",
+                                                         "id":  2,
+                                                         "key":  "new"
+                                                     },
+                                  "aggregatetimespent":  null,
+                                  "customfield_10034":  null,
+                                  "resolution":  null,
+                                  "customfield_10035":  null,
+                                  "customfield_10036":  null,
+                                  "customfield_10037":  null,
+                                  "customfield_10027":  null,
+                                  "customfield_10028":  null,
+                                  "customfield_10029":  null,
+                                  "resolutiondate":  null,
+                                  "workratio":  -1,
+                                  "lastViewed":  "2026-01-01T10:36:58.753+0100",
+                                  "watches":  {
+                                                  "self":  "https://vospr.atlassian.net/rest/api/3/issue/ATL-2/watchers",
+                                                  "isWatching":  true,
+                                                  "watchCount":  1
+                                              },
+                                  "customfield_10060":  null,
+                                  "customfield_10061":  null,
+                                  "created":  "2026-01-01T09:35:32.526+0100",
+                                  "customfield_10062":  null,
+                                  "customfield_10063":  null,
+                                  "customfield_10064":  null,
+                                  "customfield_10020":  null,
+                                  "customfield_10065":  null,
+                                  "customfield_10021":  null,
+                                  "customfield_10066":  [
+
+                                                        ],
+                                  "customfield_10022":  null,
+                                  "customfield_10067":  null,
+                                  "priority":  {
+                                                   "name":  "Medium",
+                                                   "self":  "https://vospr.atlassian.net/rest/api/3/priority/3",
+                                                   "iconUrl":  "https://vospr.atlassian.net/images/icons/priorities/medium_new.svg",
+                                                   "id":  "3"
+                                               },
+                                  "customfield_10023":  null,
+                                  "customfield_10068":  null,
+                                  "customfield_10024":  null,
+                                  "customfield_10069":  null,
+                                  "customfield_10025":  null,
+                                  "labels":  [
+                                                 "ai_questions_asked"
+                                             ],
+                                  "customfield_10026":  null,
+                                  "customfield_10016":  null,
+                                  "customfield_10017":  null,
+                                  "customfield_10019":  "0|i0003b:",
+                                  "timeestimate":  null,
+                                  "aggregatetimeoriginalestimate":  null,
+                                  "versions":  [
+
+                                               ],
+                                  "issuelinks":  [
+
+                                                 ],
+                                  "assignee":  {
+                                                   "accountId":  "712020:9bccb0d5-3074-42f1-8d6e-54d564d50a5f",
+                                                   "emailAddress":  "andrey_popov@epam.com",
+                                                   "avatarUrls":  {
+                                                                      "48x48":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png",
+                                                                      "24x24":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png",
+                                                                      "16x16":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png",
+                                                                      "32x32":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png"
+                                                                  },
+                                                   "displayName":  "Andrey",
+                                                   "accountType":  "atlassian",
+                                                   "self":  "https://vospr.atlassian.net/rest/api/3/user?accountId=712020%3A9bccb0d5-3074-42f1-8d6e-54d564d50a5f",
+                                                   "active":  true,
+                                                   "timeZone":  "Europe/Berlin"
+                                               },
+                                  "updated":  "2026-01-01T10:00:29.478+0100",
+                                  "status":  {
+                                                 "name":  "To Do",
+                                                 "self":  "https://vospr.atlassian.net/rest/api/3/status/10010",
+                                                 "description":  "This was auto-generated by Jira Service Management during workflow import",
+                                                 "iconUrl":  "https://vospr.atlassian.net/images/icons/status_generic.gif",
+                                                 "id":  "10010",
+                                                 "statusCategory":  {
+                                                                        "colorName":  "blue-gray",
+                                                                        "name":  "To Do",
+                                                                        "self":  "https://vospr.atlassian.net/rest/api/3/statuscategory/2",
+                                                                        "id":  2,
+                                                                        "key":  "new"
+                                                                    }
+                                             },
+                                  "components":  [
+
+                                                 ],
+                                  "timeoriginalestimate":  null,
+                                  "description":  {
+                                                      "type":  "doc",
+                                                      "version":  1,
+                                                      "content":  [
+                                                                      {
+                                                                          "type":  "paragraph",
+                                                                          "content":  [
+                                                                                          {
+                                                                                              "text":  "We need analytics on the dashboard. Users should be able to see their data and metrics.\n\nShow some charts and graphs that look good. Make it useful for business decisions.\n\nThe dashboard should be fast and work well on mobile too.",
+                                                                                              "type":  "text"
+                                                                                          }
+                                                                                      ]
+                                                                      }
+                                                                  ]
+                                                  },
+                                  "customfield_10010":  null,
+                                  "customfield_10056":  null,
+                                  "customfield_10057":  null,
+                                  "customfield_10014":  null,
+                                  "customfield_10059":  null,
+                                  "customfield_10015":  null,
+                                  "timetracking":  {
+
+                                                   },
+                                  "customfield_10005":  null,
+                                  "customfield_10006":  null,
+                                  "customfield_10007":  null,
+                                  "security":  null,
+                                  "customfield_10008":  null,
+                                  "aggregatetimeestimate":  null,
+                                  "attachment":  [
+
+                                                 ],
+                                  "customfield_10009":  null,
+                                  "summary":  "Implement dashboard analytics",
+                                  "creator":  {
+                                                  "accountId":  "712020:9bccb0d5-3074-42f1-8d6e-54d564d50a5f",
+                                                  "emailAddress":  "andrey_popov@epam.com",
+                                                  "avatarUrls":  {
+                                                                     "48x48":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png",
+                                                                     "24x24":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png",
+                                                                     "16x16":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png",
+                                                                     "32x32":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png"
+                                                                 },
+                                                  "displayName":  "Andrey",
+                                                  "accountType":  "atlassian",
+                                                  "self":  "https://vospr.atlassian.net/rest/api/3/user?accountId=712020%3A9bccb0d5-3074-42f1-8d6e-54d564d50a5f",
+                                                  "active":  true,
+                                                  "timeZone":  "Europe/Berlin"
+                                              },
+                                  "subtasks":  [
+
+                                               ],
+                                  "reporter":  {
+                                                   "accountId":  "712020:9bccb0d5-3074-42f1-8d6e-54d564d50a5f",
+                                                   "emailAddress":  "andrey_popov@epam.com",
+                                                   "avatarUrls":  {
+                                                                      "48x48":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png",
+                                                                      "24x24":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png",
+                                                                      "16x16":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png",
+                                                                      "32x32":  "https://secure.gravatar.com/avatar/e3bd820504305a286aba687519368d80?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-0.png"
+                                                                  },
+                                                   "displayName":  "Andrey",
+                                                   "accountType":  "atlassian",
+                                                   "self":  "https://vospr.atlassian.net/rest/api/3/user?accountId=712020%3A9bccb0d5-3074-42f1-8d6e-54d564d50a5f",
+                                                   "active":  true,
+                                                   "timeZone":  "Europe/Berlin"
+                                               },
+                                  "aggregateprogress":  {
+                                                            "total":  0,
+                                                            "progress":  0
+                                                        },
+                                  "customfield_10001":  null,
+                                  "customfield_10002":  [
+
+                                                        ],
+                                  "customfield_10003":  null,
+                                  "customfield_10004":  null,
+                                  "customfield_10038":  null,
+                                  "environment":  null,
+                                  "duedate":  null,
+                                  "progress":  {
+                                                   "total":  0,
+                                                   "progress":  0
+                                               },
+                                  "votes":  {
+                                                "hasVoted":  false,
+                                                "self":  "https://vospr.atlassian.net/rest/api/3/issue/ATL-2/votes",
+                                                "votes":  0
+                                            },
+                                  "comment":  {
+                                                  "total":  0,
+                                                  "comments":  [
+
+                                                               ],
+                                                  "maxResults":  0,
+                                                  "self":  "https://vospr.atlassian.net/rest/api/3/issue/10048/comment",
+                                                  "startAt":  0
+                                              },
+                                  "worklog":  {
+                                                  "total":  0,
+                                                  "maxResults":  20,
+                                                  "startAt":  0,
+                                                  "worklogs":  [
+
+                                                               ]
+                                              }
+                              }
+               }
+}

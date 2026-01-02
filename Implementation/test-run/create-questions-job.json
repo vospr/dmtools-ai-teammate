@@ -1,0 +1,7 @@
+﻿{
+    "params":  {
+                   "postJSAction":  "agents/js/createQuestionsAndAssignForReview.js"
+               },
+    "description":  "Create Jira sub-tickets from AI-generated questions",
+    "name":  "Create Questions from AI Response"
+}
