@@ -132,8 +132,8 @@ jobs:
           export JIRA_AUTH_TYPE=$(echo "$JIRA_AUTH_TYPE" | tr -d '\r\n' | xargs)
           echo "JIRA_BASE_PATH='$JIRA_BASE_PATH'"
           echo "JIRA_AUTH_TYPE='$JIRA_AUTH_TYPE'"
-          # Test Jira connection by fetching a known ticket or using a simple command
-          dmtools jira_get_ticket ATL-1 > /dev/null 2>&1 && echo "✅ Jira connection successful" || echo "⚠️ Jira connection test skipped (non-critical)"
+          # Test Jira connection using get_my_profile (correct tool name)
+          dmtools jira_get_my_profile > /dev/null 2>&1 && echo "✅ Jira connection successful" || echo "⚠️ Jira connection test failed (check credentials)"
       
       - name: Get Ticket Information
         id: get_ticket
