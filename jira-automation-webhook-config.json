@@ -1,0 +1,27 @@
+{
+  "webhook_url": "https://api.github.com/repos/vospr/dmtools-ai-teammate/actions/workflows/learning-ai-teammate.yml/dispatches",
+  "http_method": "POST",
+  "headers": {
+    "Accept": "application/vnd.github.v3+json",
+    "Authorization": "token {{githubToken}}",
+    "Content-Type": "application/json"
+  },
+  "request_body": {
+    "ref": "main",
+    "inputs": {
+      "ticket_key": "{{issue.key}}",
+      "config_file": "agents/learning_questions.json"
+    }
+  },
+  "web_request_body_type": "Custom data",
+  "delay_execution_seconds": 0,
+  "notes": {
+    "github_org": "vospr",
+    "github_repo": "dmtools-ai-teammate",
+    "workflow_file": "learning-ai-teammate.yml",
+    "branch": "main",
+    "config_file_path": "agents/learning_questions.json",
+    "github_token_variable": "{{githubToken}}",
+    "ticket_key_smart_value": "{{issue.key}}"
+  }
+}
