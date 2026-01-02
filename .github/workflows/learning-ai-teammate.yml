@@ -45,18 +45,47 @@ jobs:
             echo "Downloading install.sh from vospr/dmtools releases..."
             curl -fsSL https://github.com/vospr/dmtools/releases/latest/download/install.sh | bash
           fi
+          
+          # Add dmtools bin directory to PATH for all subsequent steps
           echo "$HOME/.dmtools/bin" >> $GITHUB_PATH
           
-          # Verify installation
+          # Verify installation location
+          echo "🔍 Verifying installation location..."
+          echo "Install directory: $HOME/.dmtools"
+          ls -la "$HOME/.dmtools/bin" || echo "⚠️ bin directory not found"
+          ls -la "$HOME/.dmtools/bin/dmtools" || echo "⚠️ dmtools script not found"
+          
+          # Verify installation in current step
           export PATH="$HOME/.dmtools/bin:$PATH"
-          dmtools --version || echo "⚠️ dmtools version check failed"
+          if command -v dmtools >/dev/null 2>&1; then
+            echo "✅ dmtools found in PATH"
+            dmtools --version || echo "⚠️ dmtools version check failed"
+          else
+            echo "❌ dmtools not found in PATH after installation"
+            echo "Current PATH: $PATH"
+            exit 1
+          fi
       
       - name: Verify dmtools CLI
         run: |
           echo "🔍 Verifying dmtools installation..."
-          which dmtools || echo "❌ dmtools not in PATH"
-          dmtools --version || echo "❌ dmtools not working"
-          dmtools list | head -20 || echo "❌ Cannot list tools"
+          echo "PATH: $PATH"
+          echo "Checking for dmtools..."
+          
+          # Ensure PATH includes dmtools location
+          export PATH="$HOME/.dmtools/bin:$PATH"
+          
+          if command -v dmtools >/dev/null 2>&1; then
+            echo "✅ dmtools found at: $(which dmtools)"
+            dmtools --version
+            echo "✅ dmtools is working"
+            dmtools list | head -20 || echo "⚠️ Cannot list tools (non-critical)"
+          else
+            echo "❌ dmtools not found in PATH"
+            echo "Searching for dmtools..."
+            find "$HOME" -maxdepth 4 -type f -name "dmtools" 2>/dev/null | head -5 || echo "No dmtools found"
+            exit 1
+          fi
       
       - name: Test Jira Connection
         env:
