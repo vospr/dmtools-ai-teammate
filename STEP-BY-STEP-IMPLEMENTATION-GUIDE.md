@@ -5,6 +5,12 @@
 
 **Important Constraint:** Workflows and actions cannot reference `IstiN/dmtools` directly (different owner). Use your fork `vospr/dmtools` or create a clean repository.
 
+**Your Setup:**
+- **Workflow Repository:** `vospr/dmtools` (where your workflow `ai-teammate.yml` exists)
+- **Secrets/Variables Location:** `vospr/dmtools` (Settings → Secrets and variables → Actions)
+- **Workflow File:** `.github/workflows/ai-teammate.yml` in `vospr/dmtools`
+- **Original Repo:** `IstiN/dmtools` (checked out during workflow for tools and agent configs)
+
 ---
 
 ## Table of Contents
@@ -39,9 +45,9 @@ flowchart TD
 ```
 
 **Key Points:**
-- Workflow runs in **your repository** (`vospr/dmtools-ai-teammate`)
+- Workflow runs in **your repository** (`vospr/dmtools`)
 - Tools and agent configs come from **original repository** (`IstiN/dmtools`)
-- Credentials come from **GitHub Secrets/Variables** (your repository)
+- Credentials come from **GitHub Secrets/Variables** (your repository: `vospr/dmtools`)
 - `dmtools.env` is created dynamically from secrets/variables
 
 ---
@@ -124,7 +130,7 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
 
 **Action:**
 1. Check which agent configs you're using:
-   - `agents/learning_questions.json` (in your repo: `dmtools-ai-teammate`)
+   - `agents/learning_questions.json` (in your repo: `vospr/dmtools` or `vospr/dmtools-ai-teammate`)
    - Other configs from original repo (`IstiN/dmtools`)
 
 2. Decide:
@@ -132,10 +138,6 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
    - **Use your repo's configs** - Set `use_your_agent_config: true`
 
 **Note:** The workflow supports both options. You can use original repo's agent configs by default, and switch to your repo's configs when needed.
-
-**Your setup:** Since you're using `vospr/dmtools` repository, agent configs can be in:
-- `vospr/dmtools/agents/` (your fork)
-- Or from `IstiN/dmtools/agents/` (original repo, checked out during workflow)
 
 ### Step 1.3: Verify Repository Access
 
@@ -148,9 +150,10 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
    - Go to: `https://github.com/vospr/dmtools`
    - Verify it exists and you have write access
 
-3. Verify your workflow repository `vospr/dmtools-ai-teammate`:
-   - Go to: `https://github.com/vospr/dmtools-ai-teammate`
+3. Verify your workflow repository `vospr/dmtools`:
+   - Go to: `https://github.com/vospr/dmtools`
    - Verify you have admin access (needed for Secrets/Variables)
+   - Verify workflow exists: `https://github.com/vospr/dmtools/actions/workflows/ai-teammate.yml`
 
 ---
 
@@ -240,12 +243,13 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
 
 ### Step 3.1: Verify Workflow File Exists
 
-**File:** `.github/workflows/ai-teammate-original.yml`
+**File:** `.github/workflows/ai-teammate.yml`
 
 **Action:**
-1. Check if file exists in your repository
-2. If not, the file should already be created (from previous steps)
-3. Verify file path: `vospr/dmtools-ai-teammate/.github/workflows/ai-teammate-original.yml`
+1. Check if file exists in your repository: `https://github.com/vospr/dmtools/tree/main/.github/workflows/ai-teammate.yml`
+2. The workflow file should already exist in `vospr/dmtools` repository
+3. Verify file path: `vospr/dmtools/.github/workflows/ai-teammate.yml`
+4. If the workflow needs to be updated to use your secrets/variables, proceed to Step 3.3
 
 ### Step 3.2: Review Workflow Structure
 
@@ -413,7 +417,7 @@ No encoded config, using defaults from config file
 ### Step 4.5: Test with Your Agent Config
 
 **Action:**
-1. Go to: **Actions** → **"AI Teammate (Using Original Repo)"** → **"Run workflow"**
+1. Go to: **Actions** → **"AI Teammate"** → **"Run workflow"**
 2. Fill inputs:
    - **config_file:** `agents/learning_questions.json`
    - **use_your_agent_config:** `true` (use your repo's config)
@@ -458,14 +462,14 @@ No encoded config, using defaults from config file
 
 ### Step 5.2: Update Webhook URL
 
-**Current webhook URL:**
+**Current webhook URL (if using dmtools-ai-teammate):**
 ```
 https://api.github.com/repos/vospr/dmtools-ai-teammate/actions/workflows/learning-ai-teammate.yml/dispatches
 ```
 
-**New webhook URL:**
+**New webhook URL (for vospr/dmtools):**
 ```
-https://api.github.com/repos/vospr/dmtools-ai-teammate/actions/workflows/ai-teammate-original.yml/dispatches
+https://api.github.com/repos/vospr/dmtools/actions/workflows/ai-teammate.yml/dispatches
 ```
 
 **Action:**
@@ -577,7 +581,8 @@ https://api.github.com/repos/vospr/dmtools-ai-teammate/actions/workflows/ai-team
 
 2. **If using your repo's config:**
    - Verify `use_your_agent_config: true` is set
-   - Check file exists in your repo: `vospr/dmtools-ai-teammate/agents/learning_questions.json`
+   - Check file exists in your repo: `vospr/dmtools/agents/learning_questions.json` (if using vospr/dmtools)
+   - Or check: `vospr/dmtools-ai-teammate/agents/learning_questions.json` (if using separate repo)
    - Verify "Copy Agent Config from Your Repo" step executed
 
 ### Issue 4: Credentials Not Working
