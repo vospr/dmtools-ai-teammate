@@ -329,17 +329,6 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
    ```
    **Why:** `dmtools run` must execute in the same directory where `dmtools.env` exists.
 
-**Validation Checklist:**
-- [ ] Workflow file exists: `vospr/dmtools/.github/workflows/ai-teammate.yml`
-- [ ] Repository checkout points to `IstiN/dmtools` (for tools)
-- [ ] Java version is set to `'23'`
-- [ ] All required secrets are referenced: `${{ secrets.SECRET_NAME }}`
-- [ ] All required variables are referenced: `${{ vars.VARIABLE_NAME }}`
-- [ ] Secret/variable names match exactly (case-sensitive) what you created in Phase 2
-- [ ] `dmtools.env` creation step has `working-directory: original-repo`
-- [ ] `dmtools run` step has `working-directory: original-repo`
-- [ ] Both steps use the same working directory (critical for `dmtools.env` to be found)
-
 ### Step 3.4: Customize Workflow (If Needed)
 
 **Optional customizations for `vospr/dmtools/.github/workflows/ai-teammate.yml`:**
@@ -400,6 +389,12 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
    - Secrets/Variables: `vospr/dmtools` repository (Settings → Secrets and variables → Actions)
    - Both must be in the same repository for secrets/variables to be accessible
 
+**Important Notes:**
+- The workflow **runs in** `vospr/dmtools` repository (where secrets/variables are stored)
+- The workflow **checks out** `IstiN/dmtools` repository (for tools and agent configs)
+- Secrets/variables are **only accessible** to workflows in the same repository where they're stored
+- If you need to use agent configs from `vospr/dmtools`, set `use_your_agent_config: true` when triggering
+
 ---
 
 ## Phase 4: Testing
@@ -410,11 +405,17 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
 1. Go to: `https://github.com/vospr/dmtools/actions`
 2. Select workflow: **"AI Teammate"**
 3. Click **"Run workflow"** button (top right)
-4. Fill in inputs:
-   - **config_file:** `agents/learning_questions.json`
-   - **use_your_agent_config:** `false` (use original repo's config)
-   - **encoded_config:** Leave empty for first test
-5. Click **"Run workflow"**
+4. Fill in inputs in the dialog:
+   - **Path to config** (required): `agents/learning_questions.json`
+     - This field is pre-filled with the default value
+     - This is the path to the agent config file (relative to the original repo or your repo)
+   - **Encoded or JSON Agent Config** (optional): Leave empty for first test
+     - This field is for base64-encoded JSON with dynamic params (ticket_key, initiator, etc.)
+     - For first test, leave this empty to use defaults from the config file
+5. Verify "Use workflow from" is set to **"Branch: `main`"**
+6. Click the green **"Run workflow"** button at the bottom of the dialog
+
+**Note:** If your workflow has a `use_your_agent_config` input field (not visible in the screenshot), you can set it to `false` to use the original repo's config, or `true` to use your repo's config. If this field is not present, the workflow will use the original repo's configs by default.
 
 ### Step 4.2: Monitor Workflow Execution
 
