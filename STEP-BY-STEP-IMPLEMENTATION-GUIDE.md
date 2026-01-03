@@ -335,7 +335,86 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
    ```
    **Why:** `dmtools run` must execute in the same directory where `dmtools.env` exists.
 
-### Step 3.4: Customize Workflow (If Needed)
+### Step 3.4: Update Workflow File (REQUIRED - Fixes "Configuration file not found" Error)
+
+**⚠️ CRITICAL:** The current workflow in `vospr/dmtools` is missing essential steps, which causes the error:
+```
+Error: Configuration file not found: agents/learning_questions.json
+```
+
+**Root Cause:** The workflow runs from `vospr/dmtools` directory, but:
+- Agent configs are in `IstiN/dmtools` repository (not checked out)
+- `dmtools.env` is not created from your secrets
+- `dmtools run` executes from wrong directory
+
+**Solution: Update the workflow file in `vospr/dmtools`**
+
+**Option A: Copy the complete workflow (Recommended - Easiest)**
+
+1. **Get the updated workflow file:**
+   - File location: `dmtools-ai-teammate/.github/workflows/ai-teammate-original.yml`
+   - Or view online: `https://github.com/vospr/dmtools-ai-teammate/blob/main/.github/workflows/ai-teammate-original.yml`
+
+2. **Update the workflow in `vospr/dmtools`:**
+   - Go to: `https://github.com/vospr/dmtools/edit/main/.github/workflows/ai-teammate.yml`
+   - Or clone locally and edit:
+     ```bash
+     cd C:\Users\AndreyPopov\dmtools
+     git pull origin main
+     # Copy content from ai-teammate-original.yml to .github/workflows/ai-teammate.yml
+     ```
+
+3. **Update the workflow name (optional):**
+   ```yaml
+   name: AI Teammate  # Change from "AI Teammate (Using Original Repo)" if desired
+   ```
+
+4. **Commit and push to `vospr/dmtools` repository:**
+   ```bash
+   git add .github/workflows/ai-teammate.yml
+   git commit -m "Update workflow to checkout IstiN/dmtools and create dmtools.env from secrets"
+   git push origin main
+   ```
+
+**Option B: Manually add missing steps to existing workflow**
+
+If you want to keep the existing workflow structure, add these steps in order:
+
+1. **Add checkout step (MUST be first step, before Java setup):**
+   ```yaml
+   - name: Checkout Original Repository
+     uses: actions/checkout@v4
+     with:
+       repository: IstiN/dmtools
+       ref: main
+       path: original-repo
+       token: ${{ secrets.GITHUB_TOKEN }}
+   ```
+   **Placement:** Add this as the first step, right after the initial `vospr/dmtools` checkout (if any)
+
+2. **Add dmtools.env creation step (MUST be before "Run AI Teammate"):**
+   - Copy the entire "Create dmtools.env from Your Secrets" step from `ai-teammate-original.yml` (lines 92-180)
+   - Ensure it has `working-directory: original-repo`
+   - This step creates `dmtools.env` from your GitHub Secrets/Variables
+
+3. **Add agent config verification step (optional but recommended):**
+   - Copy the "Verify Agent Config" step from `ai-teammate-original.yml` (lines 199-212)
+   - Ensures the config file exists before running
+
+4. **Update "Run AI Teammate" step (CRITICAL):**
+   - Add `working-directory: original-repo` to the step
+   - This ensures `dmtools run` executes from the directory where:
+     - `agents/learning_questions.json` exists (from `IstiN/dmtools`)
+     - `dmtools.env` exists (created in previous step)
+
+**Verification Checklist After Update:**
+- [ ] Workflow file has "Checkout Original Repository" step that checks out `IstiN/dmtools` to `original-repo/`
+- [ ] Workflow file has "Create dmtools.env from Your Secrets" step with `working-directory: original-repo`
+- [ ] Workflow file has "Run AI Teammate" step with `working-directory: original-repo`
+- [ ] All secret/variable references match what you created in Phase 2
+- [ ] Workflow file is committed and pushed to `vospr/dmtools` repository
+
+### Step 3.5: Customize Workflow (If Needed)
 
 **Optional customizations for `vospr/dmtools/.github/workflows/ai-teammate.yml`:**
 
