@@ -133,6 +133,10 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
 
 **Note:** The workflow supports both options. You can use original repo's agent configs by default, and switch to your repo's configs when needed.
 
+**Your setup:** Since you're using `vospr/dmtools` repository, agent configs can be in:
+- `vospr/dmtools/agents/` (your fork)
+- Or from `IstiN/dmtools/agents/` (original repo, checked out during workflow)
+
 ### Step 1.3: Verify Repository Access
 
 **Action:**
