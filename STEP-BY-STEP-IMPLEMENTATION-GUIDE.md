@@ -278,45 +278,127 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
 
 ### Step 3.3: Verify Workflow Configuration
 
-**Check these settings in the workflow file:**
+**Check these settings in the workflow file:** `vospr/dmtools/.github/workflows/ai-teammate.yml`
 
-1. **Repository reference:**
+1. **Repository checkout (for tools and agent configs):**
    ```yaml
-   repository: IstiN/dmtools  # Should point to original repo
+   - name: Checkout Original Repository
+     uses: actions/checkout@v4
+     with:
+       repository: IstiN/dmtools  # Should point to original repo for tools
+       ref: main
+       path: original-repo
    ```
+   **Why:** This checks out the original `IstiN/dmtools` repository to get the latest tools and agent configs. Your workflow runs in `vospr/dmtools`, but uses tools from the original repo.
 
 2. **Java version:**
    ```yaml
-   java-version: '23'  # Should match dmtools requirement
+   - name: Setup Java Environment
+     uses: actions/setup-java@v4
+     with:
+       distribution: 'temurin'
+       java-version: '23'  # Must be Java 23 (dmtools requirement)
    ```
+   **Why:** dmtools requires Java 23. Verify this is set correctly.
 
-3. **Secret/Variable references:**
-   - All secrets should use `${{ secrets.SECRET_NAME }}`
-   - All variables should use `${{ vars.VARIABLE_NAME }}`
-   - Names must match exactly what you created in Phase 2
-
-4. **Working directory:**
+3. **Secret/Variable references (in "Create dmtools.env" step):**
    ```yaml
-   working-directory: original-repo  # Where dmtools.env is created
+   export JIRA_EMAIL="${{ secrets.JIRA_EMAIL }}"
+   export JIRA_API_TOKEN="${{ secrets.JIRA_API_TOKEN }}"
+   export JIRA_BASE_PATH="${{ vars.JIRA_BASE_PATH }}"
+   export JIRA_AUTH_TYPE="${{ vars.JIRA_AUTH_TYPE }}"
+   # ... etc
    ```
+   **Check:**
+   - All secrets use `${{ secrets.SECRET_NAME }}` format
+   - All variables use `${{ vars.VARIABLE_NAME }}` format
+   - Names match exactly what you created in Phase 2 (case-sensitive)
+   - Secrets are from `vospr/dmtools` repository (where workflow runs)
+
+4. **Working directory (where dmtools.env is created):**
+   ```yaml
+   - name: Create dmtools.env from Your Secrets
+     working-directory: original-repo  # Where dmtools.env is created
+   ```
+   **Why:** `dmtools.env` must be in the same directory where `dmtools run` executes. Since we checkout `IstiN/dmtools` to `original-repo/`, we create the file there.
+
+5. **Working directory (where dmtools run executes):**
+   ```yaml
+   - name: Run AI Teammate
+     working-directory: original-repo  # Where dmtools run executes
+   ```
+   **Why:** `dmtools run` must execute in the same directory where `dmtools.env` exists.
+
+**Validation Checklist:**
+- [ ] Workflow file exists: `vospr/dmtools/.github/workflows/ai-teammate.yml`
+- [ ] Repository checkout points to `IstiN/dmtools` (for tools)
+- [ ] Java version is set to `'23'`
+- [ ] All required secrets are referenced: `${{ secrets.SECRET_NAME }}`
+- [ ] All required variables are referenced: `${{ vars.VARIABLE_NAME }}`
+- [ ] Secret/variable names match exactly (case-sensitive) what you created in Phase 2
+- [ ] `dmtools.env` creation step has `working-directory: original-repo`
+- [ ] `dmtools run` step has `working-directory: original-repo`
+- [ ] Both steps use the same working directory (critical for `dmtools.env` to be found)
 
 ### Step 3.4: Customize Workflow (If Needed)
 
-**Optional customizations:**
+**Optional customizations for `vospr/dmtools/.github/workflows/ai-teammate.yml`:**
 
-1. **Change repository source:**
-   - If using `vospr/dmtools` instead of `IstiN/dmtools`, change:
+1. **Use your fork's agent configs instead of original repo:**
+   - The workflow already supports this via `use_your_agent_config: true` input
+   - If you want to always use your fork's configs, you can modify the checkout step:
      ```yaml
-     repository: vospr/dmtools
+     - name: Checkout Your Repository
+       if: inputs.use_your_agent_config == true
+       uses: actions/checkout@v4
+       with:
+         repository: vospr/dmtools  # Your fork
+         path: your-repo
+         sparse-checkout: |
+           agents/
      ```
+   - **Note:** This is already implemented in the workflow. You just need to set `use_your_agent_config: true` when triggering.
 
 2. **Add additional environment variables:**
-   - Add to the `dmtools.env` creation step
-   - Add corresponding secrets/variables in GitHub
+   - **Step 1:** Add the variable to the `dmtools.env` template in the "Create dmtools.env" step:
+     ```yaml
+     YOUR_NEW_VAR=${YOUR_NEW_VAR}
+     ```
+   - **Step 2:** Add the export statement:
+     ```yaml
+     export YOUR_NEW_VAR="${{ vars.YOUR_NEW_VAR }}"
+     ```
+   - **Step 3:** Add to substitution (envsubst or sed section)
+   - **Step 4:** Create the corresponding secret/variable in GitHub (`vospr/dmtools` repository)
 
-3. **Modify agent config path:**
-   - Change default `config_file` input value
-   - Update Jira automation webhook accordingly
+3. **Modify agent config default path:**
+   - Change the default value in workflow inputs:
+     ```yaml
+     inputs:
+       config_file:
+         description: 'Path to agent config'
+         required: true
+         default: 'agents/your-custom-config.json'  # Change this
+     ```
+   - **Note:** If you change this, also update your Jira automation webhook request body accordingly.
+
+4. **Use vospr/dmtools fork for tools (instead of IstiN/dmtools):**
+   - **Not recommended** - You'll lose automatic updates from original repo
+   - If you must, change the checkout step:
+     ```yaml
+     - name: Checkout Original Repository
+       uses: actions/checkout@v4
+       with:
+         repository: vospr/dmtools  # Your fork instead of IstiN/dmtools
+         ref: main
+         path: original-repo
+     ```
+   - **Warning:** This means you'll need to manually sync updates from `IstiN/dmtools` to your fork.
+
+5. **Verify workflow file location:**
+   - Workflow file: `vospr/dmtools/.github/workflows/ai-teammate.yml`
+   - Secrets/Variables: `vospr/dmtools` repository (Settings → Secrets and variables → Actions)
+   - Both must be in the same repository for secrets/variables to be accessible
 
 ---
 
@@ -325,8 +407,8 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
 ### Step 4.1: Manual Workflow Test
 
 **Action:**
-1. Go to: `https://github.com/vospr/dmtools-ai-teammate/actions`
-2. Select workflow: **"AI Teammate (Using Original Repo)"**
+1. Go to: `https://github.com/vospr/dmtools/actions`
+2. Select workflow: **"AI Teammate"**
 3. Click **"Run workflow"** button (top right)
 4. Fill in inputs:
    - **config_file:** `agents/learning_questions.json`
@@ -555,7 +637,7 @@ https://api.github.com/repos/vospr/dmtools/actions/workflows/ai-teammate.yml/dis
 
 **Solutions:**
 1. Verify secret/variable name matches exactly (case-sensitive)
-2. Check that secret/variable is created in correct repository (`vospr/dmtools-ai-teammate`)
+2. Check that secret/variable is created in correct repository (`vospr/dmtools` - where the workflow runs)
 3. Verify secret/variable has a value set
 4. Check workflow file references: `${{ secrets.SECRET_NAME }}` and `${{ vars.VARIABLE_NAME }}`
 
@@ -711,7 +793,7 @@ After completing all phases, you should have:
 
 ### Webhook URL (for Jira automation)
 ```
-https://api.github.com/repos/vospr/dmtools-ai-teammate/actions/workflows/ai-teammate-original.yml/dispatches
+https://api.github.com/repos/vospr/dmtools/actions/workflows/ai-teammate.yml/dispatches
 ```
 
 ---
