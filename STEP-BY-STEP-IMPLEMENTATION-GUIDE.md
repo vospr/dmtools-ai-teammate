@@ -249,7 +249,13 @@ Use your existing fork and sync updates from `IstiN/dmtools` when needed. This g
 1. Check if file exists in your repository: `https://github.com/vospr/dmtools/tree/main/.github/workflows/ai-teammate.yml`
 2. The workflow file should already exist in `vospr/dmtools` repository
 3. Verify file path: `vospr/dmtools/.github/workflows/ai-teammate.yml`
-4. If the workflow needs to be updated to use your secrets/variables, proceed to Step 3.3
+
+**Important:** The existing `ai-teammate.yml` in `vospr/dmtools` is likely the original workflow from `IstiN/dmtools`, which:
+- ❌ Does NOT checkout `IstiN/dmtools` repository
+- ❌ Does NOT create `dmtools.env` from your secrets
+- ❌ Runs from `vospr/dmtools` directory (where agent configs don't exist)
+
+**You need to update the workflow** to include these steps. Proceed to Step 3.2 to review what needs to be added.
 
 ### Step 3.2: Review Workflow Structure
 
@@ -501,11 +507,16 @@ No encoded config, using defaults from config file
 
 **Action:**
 1. Go to: **Actions** → **"AI Teammate"** → **"Run workflow"**
-2. Fill inputs:
-   - **config_file:** `agents/learning_questions.json`
-   - **use_your_agent_config:** `true` (use your repo's config)
-   - **encoded_config:** Leave empty
+2. Fill inputs in the dialog:
+   - **Path to config:** `agents/learning_questions.json`
+   - **Encoded or JSON Agent Config:** Leave empty
+   - **use_your_agent_config:** If this field is available, set to `true` (use your repo's config)
+     - **Note:** If this field is not visible in the workflow dialog, the workflow may not support this option, or it may use your repo's configs by default when the config file exists in your repo
 3. Click **"Run workflow"**
+
+**Expected:**
+- If `use_your_agent_config` is supported: Step "Checkout Your Repository" should execute
+- If `use_your_agent_config` is not supported: The workflow will check for the config file in the original repo first, then in your repo if available
 
 **Expected:**
 - Step "Checkout Your Repository" should execute
