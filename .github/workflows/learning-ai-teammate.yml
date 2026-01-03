@@ -433,7 +433,7 @@ sys.exit(1)
           # Clean and validate JSON using Python (more forgiving)
           if command -v python3 >/dev/null 2>&1; then
             echo "Validating and cleaning JSON with Python..."
-            CLEAN_JSON=$(echo "$JSON" | python3 << 'PYTHON_CLEAN'
+            CLEAN_JSON=$(echo "$JSON" | python3 -c "
 import json
 import sys
 
@@ -443,13 +443,12 @@ try:
         print(json.dumps(data, indent=2))
         sys.exit(0)
     else:
-        print("Not a list", file=sys.stderr)
+        print('Not a list', file=sys.stderr)
         sys.exit(1)
 except json.JSONDecodeError as e:
-    print(f"JSON decode error: {e}", file=sys.stderr)
+    print(f'JSON decode error: {e}', file=sys.stderr)
     sys.exit(1)
-PYTHON_CLEAN
-            2>json_error.log || echo "")
+" 2>json_error.log || echo "")
             
             if [ -n "$CLEAN_JSON" ]; then
               echo "$CLEAN_JSON" > questions.json
